@@ -39,7 +39,6 @@ export class AuthController {
   async loginAdmin(@Res({ passthrough: true }) res: Response, @Body() body: LoginAdminDto) {
 
     const { access_token, refresh_token } = await this.authService.loginAdmin(body);
-    console.log({ access_token, refresh_token });
 
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
