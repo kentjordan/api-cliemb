@@ -1,3 +1,5 @@
+CREATE DATABASE cliemb;
+
 DROP TABLE IF EXISTS student_location;
 DROP TABLE IF EXISTS admin_log;
 DROP TABLE IF EXISTS monitoring;
