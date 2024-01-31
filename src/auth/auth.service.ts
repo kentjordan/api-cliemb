@@ -10,7 +10,7 @@ import * as argon from 'argon2'
 export class AuthService {
 
     AT_EXPIRY: string = '12h';
-    RT_EXPIRY: string = '7d';
+    RT_EXPIRY: string = '15d';
 
     constructor(
         private readonly db: PrismaService,
@@ -71,6 +71,28 @@ export class AuthService {
         }
 
         new HttpException('Invalid Password', HttpStatus.BAD_REQUEST)
+
+    }
+
+    refreshToken(refresh_token: string) {
+
+        const decodedRT = this.jwt.verify(refresh_token, { secret: process.env.JWT_SECRET_KEY }) as { access_token: string, iat: number, exp: number };
+        const decodedAT = this.jwt.decode(decodedRT.access_token) as { id: string, username: string, iat: number, exp: number };
+
+        const AT = this.jwt.sign({ id: decodedAT.id, username: decodedAT.username }, {
+            secret: process.env.JWT_SECRET_KEY,
+            expiresIn: this.AT_EXPIRY
+        });
+
+        const RT = this.jwt.sign({ access_token: AT }, {
+            secret: process.env.JWT_SECRET_KEY,
+            expiresIn: this.RT_EXPIRY
+        });
+
+        return {
+            access_token: AT,
+            refresh_token: RT
+        };
 
     }
 

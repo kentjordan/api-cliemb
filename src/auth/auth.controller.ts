@@ -1,10 +1,11 @@
-import { Body, Controller, Post, Res, UseFilters } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, UseFilters } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import SignupAdminDto from './dto/signupAdmin.dto';
 import SignupStudentDto from './dto/signupStudent.dto';
 import { PrismaExceptionFilter } from 'src/utils/filters/PrismaException.filter';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import LoginAdminDto from './dto/loginAdmin.dto';
+import JwtExceptionFilter from 'src/utils/filters/JwtException.filter';
 
 @UseFilters(PrismaExceptionFilter)
 @Controller('auth')
@@ -14,6 +15,22 @@ export class AuthController {
   RT_COOKIE_EXP = 7
 
   constructor(private readonly authService: AuthService) { }
+
+  @UseFilters(JwtExceptionFilter)
+  @Get('refresh')
+  refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+
+    const refresh_token = req.cookies['refresh_token'];
+
+    const refreshedTokens = this.authService.refreshToken(refresh_token)
+
+    res.cookie('refresh_token', refreshedTokens.refresh_token);
+
+    return {
+      access_token: refreshedTokens.access_token
+    }
+
+  }
 
   @Post('signup/student')
   signupStudent(@Body() dto: SignupStudentDto) {
