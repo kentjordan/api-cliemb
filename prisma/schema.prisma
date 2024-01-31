@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model admin {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at    DateTime?   @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?   @db.Timestamp(6)
+  first_name    String      @db.VarChar(255)
+  last_name     String      @db.VarChar(255)
+  email         String      @unique @db.VarChar(255)
+  password      String
+  gender        String?     @db.VarChar(255)
+  contact_no    String?     @db.VarChar(255)
+  username      String?
+  position      String?     @db.VarChar(255)
+  province      String?     @db.VarChar(255)
+  city          String?     @db.VarChar(255)
+  barangay      String?     @db.VarChar(255)
+  profile_photo String?
+  admin_log     admin_log[]
+}
+
+model admin_log {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @db.Timestamp(6)
+  time_in      DateTime? @default(now()) @db.Timestamp(6)
+  time_out     DateTime? @db.Timestamp(6)
+  number_cases Int?
+  admin_id     String    @db.Uuid
+  admin        admin     @relation(fields: [admin_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_admin_id")
+}
+
+model monitoring {
+  id                  String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at          DateTime?                @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?                @db.Timestamp(6)
+  photo               String[]
+  state               student_emergency_state?
+  details             String?
+  student_id          String                   @db.Uuid
+  student_location_id String                   @db.Uuid
+  student             student                  @relation(fields: [student_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_student_id")
+  student_location    student_location         @relation(fields: [student_location_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_student_location_id")
+}
+
+model student {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at         DateTime?          @default(now()) @db.Timestamp(6)
+  updated_at         DateTime?          @db.Timestamp(6)
+  sr_code            String             @db.VarChar(255)
+  first_name         String             @db.VarChar(255)
+  last_name          String             @db.VarChar(255)
+  gender             String?            @db.VarChar(255)
+  email              String             @db.VarChar(255)
+  password           String
+  emergency_no       String[]           @db.VarChar(255)
+  medical_conditions String[]
+  province           String?            @db.VarChar(255)
+  city               String?            @db.VarChar(255)
+  barangay           String?            @db.VarChar(255)
+  profile_photo      String?
+  monitoring         monitoring[]
+  student_location   student_location[]
+}
+
+model student_location {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at       DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?    @db.Timestamp(6)
+  room_no          String?      @db.VarChar(64)
+  floor_no         String?      @db.VarChar(64)
+  equipment_needed String?
+  narrative        String?
+  student_id       String       @db.Uuid
+  monitoring       monitoring[]
+  student          student      @relation(fields: [student_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_student_id")
+}
+
+enum student_emergency_state {
+  TO_RECEIVE @map("TO RECEIVE")
+  PENDING
+  COMPLETED
+}

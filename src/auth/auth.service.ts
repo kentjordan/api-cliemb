@@ -1,0 +1,77 @@
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import SignupAdminDto from './dto/signupAdmin.dto';
+import SignupStudentDto from './dto/signupStudent.dto';
+import { JwtService } from '@nestjs/jwt';
+import LoginAdminDto from './dto/loginAdmin.dto';
+import * as argon from 'argon2'
+
+@Injectable()
+export class AuthService {
+
+    AT_EXPIRY: string = '12h';
+    RT_EXPIRY: string = '7d';
+
+    constructor(
+        private readonly db: PrismaService,
+        private readonly jwt: JwtService) { }
+
+    signupStudent(body: SignupStudentDto) {
+        return body;
+    }
+
+    async signupAdmin(body: SignupAdminDto) {
+
+        const hashedPassword = await argon.hash(body.password);
+
+        const createdAdmin = await this.db.admin.create({
+            select: {
+                id: true,
+            },
+            data: {
+                ...body,
+                position: body.position.toLowerCase(),
+                email: body.email.toLowerCase(),
+                password: hashedPassword
+            }
+        });
+
+        const access_token = this.jwt.sign({ id: createdAdmin.id }, { expiresIn: this.AT_EXPIRY });
+        const refresh_token = this.jwt.sign({ access_token }, { expiresIn: this.RT_EXPIRY });
+
+        return {
+            access_token,
+            refresh_token
+        }
+    }
+
+    async loginAdmin(body: LoginAdminDto) {
+
+        const admin = await this.db.admin.findFirstOrThrow({
+            select: {
+                id: true,
+                password: true
+            },
+            where: {
+                email: body.email
+            }
+        });
+
+        const verifiedPassword = await argon.verify(admin.password, body.password)
+
+        if (verifiedPassword) {
+
+            const access_token = this.jwt.sign({ id: admin.id }, { expiresIn: this.AT_EXPIRY });
+            const refresh_token = this.jwt.sign({ access_token }, { expiresIn: this.RT_EXPIRY });
+
+            return {
+                access_token,
+                refresh_token
+            }
+        }
+
+        new HttpException('Invalid Password', HttpStatus.BAD_REQUEST)
+
+    }
+
+}
