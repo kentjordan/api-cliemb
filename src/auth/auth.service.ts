@@ -46,7 +46,7 @@ export class AuthService {
     }
 
     async loginAdmin(body: LoginAdminDto) {
-        
+
         const admin = await this.db.admin.findFirstOrThrow({
             select: {
                 id: true,
