@@ -77,15 +77,32 @@ CREATE TABLE admin(
 	profile_photo TEXT
 );
 
-CREATE TABLE admin_log(
+CREATE TABLE admin_logged_in_history(
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP,
 	time_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	time_out TIMESTAMP,
-	number_cases INT,
 	admin_id UUID NOT NULL,
 	CONSTRAINT fk_admin_id
 		FOREIGN KEY (admin_id)
 		REFERENCES admin(id)
+);
+
+CREATE TABLE received_case(
+	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP,
+	student_id UUID NOT NULL,
+	student_location_id UUID NOT NULL,
+	admin_id UUID NOT NULL,
+	CONSTRAINT fk_admin_id
+		FOREIGN KEY (admin_id)
+		REFERENCES admin(id),
+	CONSTRAINT fk_student_id
+		FOREIGN KEY (student_id)
+		REFERENCES student(id),
+	CONSTRAINT fk_student_location_id
+		FOREIGN KEY (student_location_id)
+		REFERENCES student_location(id)
 );
