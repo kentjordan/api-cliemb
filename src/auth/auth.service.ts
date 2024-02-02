@@ -46,7 +46,7 @@ export class AuthService {
     }
 
     async loginAdmin(body: LoginAdminDto) {
-
+        
         const admin = await this.db.admin.findFirstOrThrow({
             select: {
                 id: true,
@@ -61,6 +61,13 @@ export class AuthService {
 
         if (verifiedPassword) {
 
+            await this.db.admin_logged_in_history.create({
+                data: {
+                    admin_id: admin.id,
+                    time_in: new Date().toISOString(),
+                }
+            });
+
             const access_token = this.jwt.sign({ id: admin.id }, { expiresIn: this.AT_EXPIRY });
             const refresh_token = this.jwt.sign({ access_token }, { expiresIn: this.RT_EXPIRY });
 
@@ -71,6 +78,10 @@ export class AuthService {
         }
 
         new HttpException('Invalid Password', HttpStatus.BAD_REQUEST)
+
+    }
+
+    async logoutAdmin() {
 
     }
 
