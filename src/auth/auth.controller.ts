@@ -6,6 +6,7 @@ import { PrismaExceptionFilter } from 'src/utils/filters/PrismaException.filter'
 import { Request, Response } from 'express';
 import LoginAdminDto from './dto/loginAdmin.dto';
 import JwtExceptionFilter from 'src/utils/filters/JwtException.filter';
+import LoginStudentDto from './dto/loginStudent.dto';
 
 @UseFilters(PrismaExceptionFilter)
 @Controller('auth')
@@ -35,6 +36,12 @@ export class AuthController {
   @Post('signup/student')
   signupStudent(@Body() dto: SignupStudentDto) {
     return this.authService.signupStudent(dto);
+  }
+
+  @Post('login/student')
+  loginStudent(
+    @Body() dto: LoginStudentDto) {
+    return this.authService.loginStudent(dto);
   }
 
   @Post('signup/admin')

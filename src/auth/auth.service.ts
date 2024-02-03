@@ -5,6 +5,7 @@ import SignupStudentDto from './dto/signupStudent.dto';
 import { JwtService } from '@nestjs/jwt';
 import LoginAdminDto from './dto/loginAdmin.dto';
 import * as argon from 'argon2'
+import LoginStudentDto from './dto/loginStudent.dto';
 
 @Injectable()
 export class AuthService {
@@ -16,8 +17,62 @@ export class AuthService {
         private readonly db: PrismaService,
         private readonly jwt: JwtService) { }
 
-    signupStudent(body: SignupStudentDto) {
-        return body;
+    async signupStudent(body: SignupStudentDto) {
+
+        const hashedPassword = await argon.hash(body.password);
+
+        const createdStudent = await this.db.student.create({
+            select: {
+                id: true
+            },
+            data: {
+                ...body,
+                password: hashedPassword,
+                email: body.email.toLocaleLowerCase(),
+                sr_code: body.sr_code.toLocaleLowerCase(),
+            }
+        })
+
+        if (createdStudent) {
+
+            const access_token = this.jwt.sign({ id: createdStudent.id }, { expiresIn: this.AT_EXPIRY });
+            const refresh_token = this.jwt.sign({ access_token }, { expiresIn: this.RT_EXPIRY });
+
+            return {
+                access_token,
+                refresh_token
+            }
+        }
+
+    }
+
+    async loginStudent(body: LoginStudentDto) {
+
+        const student = await this.db.student.findFirstOrThrow({
+            select: {
+                id: true,
+                password: true
+            },
+            where: {
+                email: body.email
+            }
+        });
+
+        const verifiedPassword = await argon.verify(student.password, body.password);
+
+        if (verifiedPassword) {
+
+            const access_token = this.jwt.sign({ id: student.id }, { expiresIn: this.AT_EXPIRY });
+            const refresh_token = this.jwt.sign({ access_token }, { expiresIn: this.RT_EXPIRY });
+
+            return {
+                access_token,
+                refresh_token
+            }
+        }
+
+        throw new HttpException('Invalid Password', HttpStatus.BAD_REQUEST)
+
     }
 
     async signupAdmin(body: SignupAdminDto) {
