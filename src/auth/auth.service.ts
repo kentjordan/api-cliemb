@@ -132,7 +132,7 @@ export class AuthService {
             }
         }
 
-        new HttpException('Invalid Password', HttpStatus.BAD_REQUEST)
+        throw new HttpException('Invalid Password', HttpStatus.BAD_REQUEST)
 
     }
 
