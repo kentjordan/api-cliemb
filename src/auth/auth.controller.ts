@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UseFilters } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, Res, UseFilters, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import SignupAdminDto from './dto/signupAdmin.dto';
 import SignupStudentDto from './dto/signupStudent.dto';
@@ -7,6 +7,7 @@ import { Request, Response } from 'express';
 import LoginAdminDto from './dto/loginAdmin.dto';
 import JwtExceptionFilter from 'src/utils/filters/JwtException.filter';
 import LoginStudentDto from './dto/loginStudent.dto';
+import StudentRefreshTokenDto from './dto/studentRefreshToken.dto';
 
 @UseFilters(PrismaExceptionFilter)
 @Controller('auth')
@@ -18,8 +19,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
   @UseFilters(JwtExceptionFilter)
-  @Get('refresh')
-  refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  @Get('refresh/admin')
+  refreshAdminToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
 
     const refresh_token = req.cookies['refresh_token'];
 
@@ -30,6 +31,14 @@ export class AuthController {
     return {
       access_token: refreshedTokens.access_token
     }
+
+  }
+
+  @UseFilters(JwtExceptionFilter)
+  @Patch('refresh/student')
+  refreshStudentToken(@Body() body: StudentRefreshTokenDto, @Res({ passthrough: true }) res: Response) {
+
+    return this.authService.refreshToken(body.refresh_token)
 
   }
 
