@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 
 
 @Injectable()
-export class StudentsGuard implements CanActivate {
+export class AuthGuard implements CanActivate {
 
   constructor(private readonly jwt: JwtService) { }
 

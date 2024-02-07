@@ -9,16 +9,21 @@ export class StudentsService {
     constructor(private readonly db: PrismaService) { }
 
     async getStudentById(id: string) {
-
-        const student = await this.db.student.findUnique({
+        return await this.db.student.findUnique({
+            select: {
+                first_name: true,
+                last_name: true,
+                sr_code: true,
+                province: true,
+                city: true,
+                barangay: true,
+                emergency_no: true,
+                medical_conditions: true,
+            },
             where: {
                 id
             }
         });
-
-        delete student['password'];
-
-        return student;
     }
 
     async updateStudentById(user: UserEntity, dto: UpdateStudentDto) {

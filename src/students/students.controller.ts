@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Req, UseGuards } from '@nestjs/common';
 import { StudentsService } from './students.service';
-import { StudentsGuard } from './students.guard';
+import { AuthGuard } from '../utils/guards/auth.guard';
 import UpdateStudentDto from './dto/updateStudent.dto';
 import { Request } from 'express';
 import UserEntity from 'src/types/User.type';
 import User from 'src/utils/decorators/User.decorator';
 
 @Controller('students')
-@UseGuards(StudentsGuard)
+@UseGuards(AuthGuard)
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) { }
 
