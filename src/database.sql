@@ -106,3 +106,17 @@ CREATE TABLE received_case(
 		FOREIGN KEY (student_location_id)
 		REFERENCES student_location(id)
 );
+
+CREATE TABLE details(
+	id UUID UNIQUE DEFAULT gen_random_uuid(),
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP,
+	room VARCHAR(64) NOT NULL,
+	floor_no VARCHAR(64) NOT NULL,
+	equipment_needed TEXT[],
+	narrative TEXT,
+	student_id UUID NOT NULL UNIQUE,
+	CONSTRAINT fk_student_id
+		FOREIGN KEY (student_id)
+		REFERENCES student(id)
+);
