@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Patch, Post, Req, Res, UseFilters, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import SignupAdminDto from './dto/signupAdmin.dto';
-import SignupStudentDto from './dto/signupStudent.dto';
+import SignupUserDto from './dto/signupUser.dto';
 import { PrismaExceptionFilter } from 'src/utils/filters/PrismaException.filter';
 import { Request, Response } from 'express';
 import LoginAdminDto from './dto/loginAdmin.dto';
 import JwtExceptionFilter from 'src/utils/filters/JwtException.filter';
-import LoginStudentDto from './dto/loginStudent.dto';
-import StudentRefreshTokenDto from './dto/studentRefreshToken.dto';
+import LoginUserDto from './dto/loginUser.dto';
+import UserRefreshTokenDto from './dto/userRefreshToken.dto';
 
 @UseFilters(PrismaExceptionFilter)
 @Controller('auth')
@@ -35,22 +35,22 @@ export class AuthController {
   }
 
   @UseFilters(JwtExceptionFilter)
-  @Patch('refresh/student')
-  refreshStudentToken(@Body() body: StudentRefreshTokenDto, @Res({ passthrough: true }) res: Response) {
+  @Patch('refresh/user')
+  refreshUserToken(@Body() body: UserRefreshTokenDto, @Res({ passthrough: true }) res: Response) {
 
     return this.authService.refreshToken(body.refresh_token)
 
   }
 
-  @Post('signup/student')
-  signupStudent(@Body() dto: SignupStudentDto) {
-    return this.authService.signupStudent(dto);
+  @Post('signup/user')
+  signupUser(@Body() dto: SignupUserDto) {
+    return this.authService.signupUser(dto);
   }
 
-  @Post('login/student')
-  loginStudent(
-    @Body() dto: LoginStudentDto) {
-    return this.authService.loginStudent(dto);
+  @Post('login/user')
+  loginUser(
+    @Body() dto: LoginUserDto) {
+    return this.authService.loginUser(dto);
   }
 
   @Post('signup/admin')

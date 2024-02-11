@@ -1,7 +1,13 @@
-import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, Length } from "class-validator";
+import { IsArray, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Length } from "class-validator";
 
-export default class SignupStudentDto {
+export default class SignupUserDto {
 
+    @IsString()
+    @IsNotEmpty()
+    @IsEnum(['STUDENT', 'PROFESSOR', 'STAFF'])
+    role: 'STUDENT' | 'PROFESSOR' | 'STAFF'
+
+    @IsOptional()
     @IsString()
     @IsNotEmpty()
     sr_code: string

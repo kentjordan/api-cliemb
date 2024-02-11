@@ -1,3 +1,4 @@
 export default interface UserEntity {
-    id: string
+    id: string,
+    role: 'STUDENT' | 'PROFESSOR' | 'STAFF'
 }

@@ -1,18 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import UserEntity from 'src/types/User.type';
-import UpdateStudentDto from './dto/updateStudent.dto';
+import UpdateStudentDto from './dto/updateUser.dto';
 
 @Injectable()
-export class StudentsService {
+export class UsersService {
 
     constructor(private readonly db: PrismaService) { }
 
-    async getStudentById(id: string) {
-        return await this.db.student.findUnique({
+    async getAuthdtUser(user: UserEntity) {
+        return await this.db.user.findUnique({
             select: {
+                id: true,
                 first_name: true,
                 last_name: true,
+                role: true,
                 sr_code: true,
                 province: true,
                 city: true,
@@ -21,13 +23,13 @@ export class StudentsService {
                 medical_conditions: true,
             },
             where: {
-                id
+                id: user.id
             }
         });
     }
 
-    async updateStudentById(user: UserEntity, dto: UpdateStudentDto) {
-        await this.db.student.update({
+    async updateAuthdUser(user: UserEntity, dto: UpdateStudentDto) {
+        await this.db.user.update({
             where: {
                 id: user.id
             },

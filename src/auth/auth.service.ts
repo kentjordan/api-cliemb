@@ -1,11 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import SignupAdminDto from './dto/signupAdmin.dto';
-import SignupStudentDto from './dto/signupStudent.dto';
+import SignupUserDto from './dto/signupUser.dto';
 import { JwtService } from '@nestjs/jwt';
 import LoginAdminDto from './dto/loginAdmin.dto';
 import * as argon from 'argon2'
-import LoginStudentDto from './dto/loginStudent.dto';
+import LoginStudentDto from './dto/loginUser.dto';
 
 @Injectable()
 export class AuthService {
@@ -17,25 +17,49 @@ export class AuthService {
         private readonly db: PrismaService,
         private readonly jwt: JwtService) { }
 
-    async signupStudent(body: SignupStudentDto) {
+    async signupUser(body: SignupUserDto) {
 
         const hashedPassword = await argon.hash(body.password);
 
-        const createdStudent = await this.db.student.create({
+        if (body.role === 'STUDENT') {
+            let createdUser = await this.db.user.create({
+                select: {
+                    id: true,
+                    role: true,
+                },
+                data: {
+                    ...body,
+                    password: hashedPassword,
+                    email: body.email.toLocaleLowerCase(),
+                    sr_code: body.sr_code.toLocaleLowerCase(),
+                }
+            })
+            if (createdUser) {
+
+                const access_token = this.jwt.sign({ id: createdUser.id, role: createdUser.role }, { expiresIn: this.AT_EXPIRY });
+                const refresh_token = this.jwt.sign({ access_token }, { expiresIn: this.RT_EXPIRY });
+
+                return {
+                    access_token,
+                    refresh_token
+                }
+            }
+
+        }
+        let createdUser = await this.db.user.create({
             select: {
-                id: true
+                id: true,
+                role: true,
             },
             data: {
                 ...body,
                 password: hashedPassword,
                 email: body.email.toLocaleLowerCase(),
-                sr_code: body.sr_code.toLocaleLowerCase(),
             }
         })
+        if (createdUser) {
 
-        if (createdStudent) {
-
-            const access_token = this.jwt.sign({ id: createdStudent.id }, { expiresIn: this.AT_EXPIRY });
+            const access_token = this.jwt.sign({ id: createdUser.id, role: createdUser.role }, { expiresIn: this.AT_EXPIRY });
             const refresh_token = this.jwt.sign({ access_token }, { expiresIn: this.RT_EXPIRY });
 
             return {
@@ -46,11 +70,12 @@ export class AuthService {
 
     }
 
-    async loginStudent(body: LoginStudentDto) {
+    async loginUser(body: LoginStudentDto) {
 
-        const student = await this.db.student.findFirstOrThrow({
+        const user = await this.db.user.findFirstOrThrow({
             select: {
                 id: true,
+                role: true,
                 password: true
             },
             where: {
@@ -58,11 +83,11 @@ export class AuthService {
             }
         });
 
-        const verifiedPassword = await argon.verify(student.password, body.password);
+        const verifiedPassword = await argon.verify(user.password, body.password);
 
         if (verifiedPassword) {
 
-            const access_token = this.jwt.sign({ id: student.id }, { expiresIn: this.AT_EXPIRY });
+            const access_token = this.jwt.sign({ id: user.id, role: user.role }, { expiresIn: this.AT_EXPIRY });
             const refresh_token = this.jwt.sign({ access_token }, { expiresIn: this.RT_EXPIRY });
 
             return {

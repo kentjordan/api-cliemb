@@ -13,7 +13,7 @@ export class DetailsService {
         await this.db.details.create({
             data: {
                 ...body,
-                student_id: user.id
+                user_id: user.id
             }
         });
     }
@@ -27,7 +27,7 @@ export class DetailsService {
                 narrative: true
             },
             where: {
-                student_id: user.id
+                user_id: user.id
             }
         });
     }
@@ -41,7 +41,7 @@ export class DetailsService {
                 narrative: true
             },
             where: {
-                student_id: user.id
+                user_id: user.id
             },
             data: {
                 ...body
