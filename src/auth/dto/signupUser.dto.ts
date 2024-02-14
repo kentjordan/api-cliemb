@@ -30,11 +30,13 @@ export default class SignupUserDto {
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
+    @IsNotEmpty({ each: true })
     emergency_no: Array<string>
 
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
+    @IsNotEmpty({ each: true })
     medical_conditions: Array<string>
 
     @IsOptional()

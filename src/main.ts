@@ -1,3 +1,4 @@
+import './patch';
 import "dotenv/config"
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -15,7 +16,7 @@ async function bootstrap() {
     credentials: true,
     origin: process.env.NODE_ENV === 'production' ? process.env.PROD_CLIENT_HOSTNAME : process.env.DEV_CLIENT_HOSTNAME,
   });
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }))
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))
 
   await app.listen(process.env.REST_API_PORT);
 }

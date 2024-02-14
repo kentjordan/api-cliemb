@@ -1,13 +1,16 @@
 CREATE DATABASE cliemb;
 
-DROP TABLE IF EXISTS admin_logged_in_history;
-DROP TABLE IF EXISTS user_location;
-DROP TABLE IF EXISTS admin_log;
-DROP TABLE IF EXISTS monitoring;
-DROP TABLE IF EXISTS user;
-DROP TABLE IF EXISTS admin;
+DROP TABLE IF EXISTS details CASCADE;
+DROP TABLE IF EXISTS received_case CASCADE;
+DROP TABLE IF EXISTS admin_logged_in_history CASCADE;
+DROP TABLE IF EXISTS user_location CASCADE;
+DROP TABLE IF EXISTS admin_log CASCADE;
+DROP TABLE IF EXISTS monitoring CASCADE;
+DROP TABLE IF EXISTS "user" CASCADE;
+DROP TABLE IF EXISTS admin CASCADE;
 
 DROP TYPE IF EXISTS USER_EMERGENCY_STATE;
+DROP TYPE IF EXISTS USER_ROLE;
 
 CREATE TYPE USER_EMERGENCY_STATE AS ENUM ('TO RECEIVE', 'PENDING', 'COMPLETED');
 CREATE TYPE USER_ROLE AS ENUM ('STUDENT', 'PROFESSOR', 'STAFF');
@@ -20,14 +23,14 @@ CREATE TABLE "user"(
 	sr_code VARCHAR(255),
 	first_name VARCHAR(255) NOT NULL,
 	last_name VARCHAR(255) NOT NULL,
-	gender VARCHAR(255),
+	gender VARCHAR(255) DEFAULT 'N/A',
 	email VARCHAR(255) NOT NULL,
 	password TEXT NOT NULL,
-	emergency_no VARCHAR(255)[],
-	medical_conditions TEXT[],
-	province VARCHAR(255),
-	city VARCHAR(255),
-	barangay VARCHAR(255),
+	emergency_no VARCHAR(255)[] DEFAULT '{N/A}',
+	medical_conditions TEXT[] DEFAULT '{N/A}',
+	province VARCHAR(255) DEFAULT 'N/A',
+	city VARCHAR(255) DEFAULT 'N/A',
+	barangay VARCHAR(255) DEFAULT 'N/A',
 	profile_photo TEXT
 );
 
@@ -122,4 +125,16 @@ CREATE TABLE details(
 	CONSTRAINT fk_user_id
 		FOREIGN KEY (user_id)
 		REFERENCES "user"(id)
+);
+
+CREATE TABLE emergency_hotlines(
+	id UUID UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP,
+	name VARCHAR(255) NOT NULL,
+	landline_no VARCHAR(255)[],
+	mobile_no VARCHAR(255)[],
+	province VARCHAR(255) NOT NULL,
+	city VARCHAR(255) NOT NULL,
+	barangay VARCHAR(255) NOT NULL
 );

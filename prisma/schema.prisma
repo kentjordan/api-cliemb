@@ -27,19 +27,6 @@ model admin {
   received_case           received_case[]
 }
 
-model monitoring {
-  id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at       DateTime?             @default(now()) @db.Timestamp(6)
-  updated_at       DateTime?             @db.Timestamp(6)
-  photo            String[]
-  state            user_emergency_state?
-  details          String?
-  user_id          String                @db.Uuid
-  user_location_id String                @db.Uuid
-  user             user                  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
-  user_location    user_location         @relation(fields: [user_location_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_location_id")
-}
-
 model admin_logged_in_history {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at DateTime? @default(now()) @db.Timestamp(6)
@@ -48,18 +35,6 @@ model admin_logged_in_history {
   time_out   DateTime? @db.Timestamp(6)
   admin_id   String    @db.Uuid
   admin      admin     @relation(fields: [admin_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_admin_id")
-}
-
-model received_case {
-  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at       DateTime?     @default(now()) @db.Timestamp(6)
-  updated_at       DateTime?     @db.Timestamp(6)
-  user_id          String        @db.Uuid
-  user_location_id String        @db.Uuid
-  admin_id         String        @db.Uuid
-  admin            admin         @relation(fields: [admin_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_admin_id")
-  user             user          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
-  user_location    user_location @relation(fields: [user_location_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_location_id")
 }
 
 model details {
@@ -74,6 +49,31 @@ model details {
   user             user      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
 }
 
+model monitoring {
+  id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at       DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?             @db.Timestamp(6)
+  photo            String[]
+  state            user_emergency_state?
+  details          String?
+  user_id          String                @db.Uuid
+  user_location_id String                @db.Uuid
+  user             user                  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+  user_location    user_location         @relation(fields: [user_location_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_location_id")
+}
+
+model received_case {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at       DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?     @db.Timestamp(6)
+  user_id          String        @db.Uuid
+  user_location_id String        @db.Uuid
+  admin_id         String        @db.Uuid
+  admin            admin         @relation(fields: [admin_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_admin_id")
+  user             user          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+  user_location    user_location @relation(fields: [user_location_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_location_id")
+}
+
 model user {
   id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at         DateTime?       @default(now()) @db.Timestamp(6)
@@ -82,14 +82,14 @@ model user {
   sr_code            String?         @db.VarChar(255)
   first_name         String          @db.VarChar(255)
   last_name          String          @db.VarChar(255)
-  gender             String?         @db.VarChar(255)
+  gender             String?         @default("N/A") @db.VarChar(255)
   email              String          @db.VarChar(255)
   password           String
-  emergency_no       String[]        @db.VarChar(255)
-  medical_conditions String[]
-  province           String?         @db.VarChar(255)
-  city               String?         @db.VarChar(255)
-  barangay           String?         @db.VarChar(255)
+  emergency_no       String[]        @default(dbgenerated("'{N/A}'::character varying[]")) @db.VarChar(255)
+  medical_conditions String[]        @default(dbgenerated("'{N/A}'::text[]"))
+  province           String?         @default("N/A") @db.VarChar(255)
+  city               String?         @default("N/A") @db.VarChar(255)
+  barangay           String?         @default("N/A") @db.VarChar(255)
   profile_photo      String?
   details            details?
   monitoring         monitoring[]
@@ -109,6 +109,18 @@ model user_location {
   monitoring       monitoring[]
   received_case    received_case[]
   user             user            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+}
+
+model emergency_hotlines {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @db.Timestamp(6)
+  name        String    @db.VarChar(255)
+  landline_no String[]  @db.VarChar(255)
+  mobile_no   String[]  @db.VarChar(255)
+  province    String    @db.VarChar(255)
+  city        String    @db.VarChar(255)
+  barangay    String    @db.VarChar(255)
 }
 
 enum user_emergency_state {

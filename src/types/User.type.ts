@@ -1,4 +1,6 @@
 export default interface UserEntity {
     id: string,
-    role: 'STUDENT' | 'PROFESSOR' | 'STAFF'
+    role: UserRole
 }
+
+export type UserRole = 'STUDENT' | 'PROFESSOR' | 'STAFF'
