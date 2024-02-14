@@ -1,4 +1,5 @@
 import { CanActivate, ExecutionContext, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
@@ -7,11 +8,17 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class AuthGuard implements CanActivate {
 
-  constructor(private readonly jwt: JwtService) { }
+  constructor(private readonly jwt: JwtService, private readonly reflector: Reflector) { }
 
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
+
+    const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler())
+
+    if (isPublic) {
+      return isPublic;
+    }
 
     const req: Request = context.switchToHttp().getRequest();
 
