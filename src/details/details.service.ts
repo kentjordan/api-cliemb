@@ -51,4 +51,47 @@ export class DetailsService {
         return updastedDetails;
     }
 
+    async updateDetailsWithMonitoring(user: UserEntity, body: UpdatedetailsDto) {
+        console.log(body);
+
+        const updatedUserDetails = await this.db.details.update({
+            select: {
+                room: true,
+                floor_no: true,
+                equipment_needed: true,
+                narrative: true
+            },
+            where: {
+                user_id: user.id
+            },
+            data: {
+                ...body
+            }
+        });
+
+        const { id: monitoring_id } = await this.db.monitoring.findFirstOrThrow({
+            select: {
+                id: true
+            },
+            where: {
+                user_id: user.id
+            },
+            orderBy: {
+                created_at: "desc"
+            }
+        });
+
+        await this.db.monitoring.update({
+            where: {
+                id: monitoring_id
+            },
+            data: {
+                ...body
+            }
+        });
+
+        return updatedUserDetails;
+
+    }
+
 }

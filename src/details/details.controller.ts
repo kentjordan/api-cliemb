@@ -29,4 +29,9 @@ export class DetailsController {
     return this.detailsService.updateDetails(user, body);
   }
 
+  @Patch('/with-monitoring')
+  updateDetailsWithMonitoring(@User() user: UserEntity, @Body() body: UpdatedetailsDto) {
+    return this.detailsService.updateDetailsWithMonitoring(user, body);
+  }
+
 }
