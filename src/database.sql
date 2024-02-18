@@ -3,7 +3,6 @@ CREATE DATABASE cliemb;
 DROP TABLE IF EXISTS details CASCADE;
 DROP TABLE IF EXISTS received_case CASCADE;
 DROP TABLE IF EXISTS admin_logged_in_history CASCADE;
-DROP TABLE IF EXISTS user_location CASCADE;
 DROP TABLE IF EXISTS admin_log CASCADE;
 DROP TABLE IF EXISTS monitoring CASCADE;
 DROP TABLE IF EXISTS "user" CASCADE;
@@ -34,35 +33,21 @@ CREATE TABLE "user"(
 	profile_photo TEXT
 );
 
-CREATE TABLE user_location(
+CREATE TABLE monitoring(
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP,
-	room_no VARCHAR(64),
-	floor_no VARCHAR(64),
-	equipment_needed TEXT,
-	narrative TEXT,
-	user_id UUID NOT NULL,
-	CONSTRAINT fk_user_id
-		FOREIGN KEY (user_id)
-		REFERENCES "user"(id)
-);
-
-CREATE TABLE monitoring(
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	updated_at TIMESTAMP,
-    photo TEXT [],
     state USER_EMERGENCY_STATE,
-    details TEXT,
+	room VARCHAR(64) NOT NULL,
+	floor_no VARCHAR(64) NOT NULL,
+	equipment_needed TEXT[],
+	narrative TEXT,
+	emergency_level SMALLINT,
+    photo TEXT [],
     user_id UUID NOT NULL,
-    user_location_id UUID NOT NULL,
     CONSTRAINT fk_user_id
         FOREIGN KEY (user_id)
-        REFERENCES "user"(id),
-    CONSTRAINT fk_user_location_id
-        FOREIGN KEY (user_location_id)
-        REFERENCES user_location(id)
+        REFERENCES "user"(id)
 );
 
 CREATE TABLE admin(
@@ -114,14 +99,13 @@ CREATE TABLE received_case(
 );
 
 CREATE TABLE details(
-	id UUID UNIQUE DEFAULT gen_random_uuid(),
+	user_id UUID UNIQUE NOT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP,
 	room VARCHAR(64) NOT NULL,
 	floor_no VARCHAR(64) NOT NULL,
 	equipment_needed TEXT[],
 	narrative TEXT,
-	user_id UUID NOT NULL UNIQUE,
 	CONSTRAINT fk_user_id
 		FOREIGN KEY (user_id)
 		REFERENCES "user"(id)
