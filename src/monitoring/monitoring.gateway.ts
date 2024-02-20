@@ -17,15 +17,4 @@ export default class MonitoringGateway implements OnGatewayConnection {
         console.log(client.id);
     }
 
-    // @UsePipes(ValidationPipe)
-    @UseFilters(PrismaExceptionWebSocketFilter)
-    @SubscribeMessage("levels-emergency")
-    handleUserLevelEmergency(
-        @MessageBody('user_id', ParseUUIDPipe) user_id: string,
-        @MessageBody('emergency_level') emergency_level: number,
-        @MessageBody('details') details: EmergencyDetailsDto) {
-
-        // return this.monitoringService.createUserLevelEmergency({ user_id, emergency_level, details }, this.server);
-    }
-
 }
