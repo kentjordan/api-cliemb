@@ -6,6 +6,8 @@ import { JwtService } from '@nestjs/jwt';
 import LoginAdminDto from './dto/loginAdmin.dto';
 import * as argon from 'argon2'
 import LoginStudentDto from './dto/loginUser.dto';
+import UserEntity from 'src/types/User.type';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class AuthService {
@@ -141,12 +143,35 @@ export class AuthService {
 
         if (verifiedPassword) {
 
-            await this.db.admin_logged_in_history.create({
-                data: {
-                    admin_id: admin.id,
-                    time_in: new Date().toISOString(),
-                }
-            });
+            try {
+
+                // Throw if there's no record then create a admin logged in record
+                await this.db.admin_logged_in_history.findFirstOrThrow({
+                    where: {
+                        admin_id: admin.id
+                    }
+                });
+
+                // Update the time_in field when the user relogin
+                await this.db.$queryRaw`
+                        UPDATE admin_logged_in_history
+                        SET 
+                            time_in = CURRENT_TIMESTAMP
+                        WHERE
+                            admin_id = ${admin.id}::UUID
+                            AND
+                            to_char(time_in, 'MM/DD/YYYY') = ${DateTime.now().toFormat("MM/dd/kkkk")}
+                        `;
+
+            } catch (error) {
+                // Create admin logged in history with time_in
+                await this.db.admin_logged_in_history.create({
+                    data: {
+                        admin_id: admin.id,
+                        time_in: new Date().toISOString(),
+                    }
+                });
+            }
 
             const access_token = this.jwt.sign({ id: admin.id }, { expiresIn: this.AT_EXPIRY });
             const refresh_token = this.jwt.sign({ access_token }, { expiresIn: this.RT_EXPIRY });
@@ -161,8 +186,15 @@ export class AuthService {
 
     }
 
-    async logoutAdmin() {
-
+    async logoutAdmin(admin: UserEntity) {
+        await this.db.$queryRaw`
+            UPDATE admin_logged_in_history
+            SET 
+                time_out = CURRENT_TIMESTAMP
+            WHERE
+                admin_id = ${admin.id}
+                AND
+                to_char(time_out, 'MM/DD/YYYY') = ${DateTime.now().toLocaleString(DateTime.DATE_SHORT)}`;
     }
 
     refreshToken(refresh_token: string) {
