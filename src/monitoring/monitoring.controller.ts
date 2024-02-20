@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseFilters, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, UseFilters, UseGuards } from "@nestjs/common";
 import MonitoringGateway from "./monitoring.gateway";
 import MonitoringService from "./monitoring.service";
 import CreateLevelEmergencyDto from "./dto/levelEmergency.dto";
@@ -30,6 +30,11 @@ export default class MonitoringCntroller {
         );
     }
 
+    @Get()
+    getMonitoringData(@Query('state') state: IMonitoringState) {
+        return this.monitoringService.getMonitoringData(state);
+    }
+
     @Get('state')
     getUserLevelEmergencyState(@User() user: UserEntity) {
         return this.monitoringService.getUserLevelEmergencyState(user);
@@ -37,10 +42,11 @@ export default class MonitoringCntroller {
 
     @Patch('state/:user_id')
     updateUserLevelEmergencySTate(
+        @User() admin: UserEntity,
         @Param('user_id') user_id: string,
         @Body() body: { state: IMonitoringState, monitoring_id: string }
     ) {
-        return this.monitoringService.updateUserLevelEmergencySTate(user_id, body);
+        return this.monitoringService.updateUserLevelEmergencyState(admin, user_id, body);
     }
 
 }

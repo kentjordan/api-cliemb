@@ -11,6 +11,78 @@ export default class MonitoringService {
 
     constructor(private readonly db: PrismaService) { }
 
+    async getMonitoringData(state: IMonitoringState = null) {
+
+        if (state !== "COMPLETED") {
+            const to_receive = await this.db.$queryRaw<Array<any>>`
+            SELECT
+                M.id AS monitoring_id,
+                U.id AS user_id,
+                first_name,
+                last_name,
+                sr_code, 
+                to_char(M.created_at, 'MM/DD/YY') AS date,
+                to_char(M.created_at, 'HH12:MI:SS AM') AS time,
+                room,
+                floor_no,
+                photo,
+                narrative,
+                state,
+                    emergency_level
+                FROM monitoring AS M
+                JOIN "user" AS U
+                ON M.user_id = U.id
+                WHERE state = 'TO RECEIVE'::user_emergency_state
+            ORDER BY emergency_level ASC
+        `;
+
+            const pending = await this.db.$queryRaw<Array<any>>`
+            SELECT
+                M.id AS monitoring_id,
+                U.id AS user_id,
+                first_name,
+                last_name,
+                sr_code, 
+                M.created_at,
+                room,
+                floor_no,
+                photo,
+                narrative,
+                state,
+                emergency_level
+            FROM monitoring AS M
+            JOIN "user" AS U
+            ON M.user_id = U.id
+            WHERE state = 'PENDING'::user_emergency_state
+            ORDER BY emergency_level ASC
+        `;
+
+            return [...to_receive, ...pending];
+        }
+
+        if (state === "COMPLETED")
+            return await this.db.$queryRaw<Array<any>>`
+            SELECT
+                M.id AS monitoring_id,
+                U.id AS user_id,
+                first_name,
+                last_name,
+                sr_code, 
+                M.created_at,
+                room,
+                floor_no,
+                photo,
+                narrative,
+                state,
+                emergency_level
+            FROM monitoring AS M
+            JOIN "user" AS U
+            ON M.user_id = U.id
+            WHERE state = 'COMPLETED'::user_emergency_state
+            ORDER BY emergency_level ASC
+        `;
+    }
+
     async createUserDetails(user: UserEntity, details: EmergencyDetailsDto) {
         return await this.db.details.create({
             data: {
@@ -78,9 +150,18 @@ export default class MonitoringService {
         })
     }
 
-    async createUserLevelEmergency(user: UserEntity, body: LevelEmergencyDto, server: Server) {
+    async getUserLatestMonitoringRecord(user: UserEntity) {
+        // Get the latest monitoring record of a user
+        // but THROW if the user has no monitoring record yet
+        return (await this.db.$queryRaw<{ state: IMonitoringState }[]>`
+                SELECT state
+                FROM monitoring
+                WHERE user_id = ${user.id}::UUID
+                ORDER BY created_at DESC;
+            `).at(0).state;
+    }
 
-        const _user = await this.db.user.findUniqueOrThrow({ where: { id: user.id } });
+    async createUserLevelEmergency(user: UserEntity, body: LevelEmergencyDto, server: Server) {
 
         try {
 
@@ -95,69 +176,89 @@ export default class MonitoringService {
             });
 
             // Get the latest monitoring record of a user
-            const { state: monitoringState } = (await this.db.$queryRaw<{ state: IMonitoringState }[]>`
-                SELECT state
-                FROM monitoring
-                WHERE user_id = ${user.id}::UUID
-                ORDER BY created_at DESC;
-            `).at(0);
+            // but THROW if the user has no monitoring record yet
+            try {
 
-            // If the monitoring state is completed
-            // create a new monitoring record
-            if (monitoringState === "COMPLETED") {
+                const monitoringState = (await this.db.$queryRaw<{ state: IMonitoringState }[]>`
+                                            SELECT state
+                                            FROM monitoring
+                                            WHERE user_id = ${user.id}::UUID
+                                            ORDER BY created_at DESC;
+                                        `).at(0).state;
+
+                if (monitoringState === "COMPLETED") {
+
+                    const userDetails = await this.updateUserDetails(user, {
+                        ...body.details,
+                        equipment_needed: body.details.equipment_needed,
+                        photo: "",
+
+                    });
+                    const userMonitoring = await this.createUserMonitoring(user, body.emergency_level, {
+                        ...body.details,
+                        equipment_needed: body.details.equipment_needed,
+                        photo: "",
+                        narrative: userDetails.narrative
+                    });
+
+                    server.emit("web-new-monitoring-message");
+
+                    return;
+                }
 
                 const userDetails = await this.updateUserDetails(user, {
                     ...body.details,
                     equipment_needed: body.details.equipment_needed,
                     photo: "",
-
                 });
-                const userMonitoring = await this.createUserMonitoring(user, body.emergency_level, {
+
+                const monitoringRecord = await this.db.monitoring.findFirstOrThrow({
+                    where: {
+                        AND: [
+                            { user_id: user.id },
+                            {
+                                OR: [
+                                    {
+                                        state: "PENDING"
+                                    }, {
+                                        state: "TO_RECEIVE"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    orderBy: {
+                        created_at: "desc"
+                    }
+                })
+
+                await this.updateUserMonitoring(user, monitoringRecord.id, body.emergency_level, {
+                    ...body.details,
+                    photo: "",
+                    equipment_needed: body.details.equipment_needed,
+                    narrative: userDetails.narrative
+                });
+
+                server.emit("web-new-monitoring-message");
+
+            } catch (error) {
+
+                const userDetails = await this.updateUserDetails(user, {
+                    ...body.details,
+                    equipment_needed: body.details.equipment_needed,
+                    photo: "",
+                });
+
+                await this.createUserMonitoring(user, body.emergency_level, {
                     ...body.details,
                     equipment_needed: body.details.equipment_needed,
                     photo: "",
                     narrative: userDetails.narrative
                 });
 
-                server.emit("web-received-message");
+                server.emit("web-new-monitoring-message");
 
-                return;
             }
-
-            // Monitoring record state is not completed,
-            // Update the user details in Details and Monitoring Table
-            const userDetails = await this.updateUserDetails(user, {
-                ...body.details,
-                photo: "",
-            });
-
-            const monitoringRecord = await this.db.monitoring.findFirstOrThrow({
-                where: {
-                    AND: [
-                        { user_id: user.id },
-                        {
-                            OR: [
-                                {
-                                    state: "PENDING"
-                                }, {
-                                    state: "TO_RECEIVE"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                orderBy: {
-                    created_at: "desc"
-                }
-            })
-
-            await this.updateUserMonitoring(user, monitoringRecord.id, body.emergency_level, {
-                ...body.details,
-                photo: "",
-                narrative: userDetails.narrative
-            });
-
-            server.emit("web-monitoring-message");
 
         } catch (error) {
             // User has no details so, we will
@@ -167,17 +268,18 @@ export default class MonitoringService {
                     floor_no: body.details.floor_no,
                     room: body.details.room,
                     user_id: user.id,
+                    equipment_needed: body.details.equipment_needed.split(","),
                 },
             });
 
-            const userMonitoring = await this.createUserMonitoring(user, body.emergency_level, {
+            await this.createUserMonitoring(user, body.emergency_level, {
                 ...body.details,
-                equipment_needed: "",
+                equipment_needed: body.details.equipment_needed,
                 photo: "",
                 narrative: userDetails.narrative
             });
 
-            server.emit("web-monitoring-message");
+            server.emit("web-new-monitoring-message");
 
         }
     }
@@ -196,7 +298,7 @@ export default class MonitoringService {
         `).at(0);
     }
 
-    async updateUserLevelEmergencySTate(user_id: string, { state, monitoring_id }: { state: IMonitoringState, monitoring_id: string }) {
+    async updateUserLevelEmergencyState(admin: UserEntity, user_id: string, { state, monitoring_id }: { state: IMonitoringState, monitoring_id: string }) {
         await this.db.$queryRaw`
             UPDATE
                 monitoring
@@ -205,5 +307,13 @@ export default class MonitoringService {
             WHERE
                 id = ${monitoring_id}::UUID AND user_id = ${user_id}::UUID;
         `;
+
+        await this.db.received_case.create({
+            data: {
+                admin_id: admin.id,
+                user_id,
+                monitoring_id,
+            }
+        })
     }
 }

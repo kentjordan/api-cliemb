@@ -73,17 +73,19 @@ model monitoring {
   photo            String[]
   user_id          String                @db.Uuid
   user             user                  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+  received_case    received_case[]
 }
 
 model received_case {
-  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  updated_at       DateTime? @db.Timestamp(6)
-  user_id          String    @db.Uuid
-  user_location_id String    @db.Uuid
-  admin_id         String    @db.Uuid
-  admin            admin     @relation(fields: [admin_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_admin_id")
-  user             user      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at    DateTime?  @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?  @db.Timestamp(6)
+  user_id       String     @db.Uuid
+  monitoring_id String     @db.Uuid
+  admin_id      String     @db.Uuid
+  admin         admin      @relation(fields: [admin_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_admin_id")
+  monitoring    monitoring @relation(fields: [monitoring_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_monitoring_id")
+  user          user       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
 }
 
 model user {

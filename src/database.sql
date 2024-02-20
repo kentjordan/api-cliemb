@@ -85,7 +85,7 @@ CREATE TABLE received_case(
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP,
 	user_id UUID NOT NULL,
-	user_location_id UUID NOT NULL,
+	monitoring_id UUID NOT NULL,
 	admin_id UUID NOT NULL,
 	CONSTRAINT fk_admin_id
 		FOREIGN KEY (admin_id)
@@ -93,9 +93,9 @@ CREATE TABLE received_case(
 	CONSTRAINT fk_user_id
 		FOREIGN KEY (user_id)
 		REFERENCES "user"(id),
-	CONSTRAINT fk_user_location_id
-		FOREIGN KEY (user_location_id)
-		REFERENCES user_location(id)
+	CONSTRAINT fk_monitoring_id
+		FOREIGN KEY (monitoring_id)
+		REFERENCES monitoring(id)
 );
 
 CREATE TABLE details(
