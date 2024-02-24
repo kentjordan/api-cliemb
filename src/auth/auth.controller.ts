@@ -8,6 +8,9 @@ import LoginAdminDto from './dto/loginAdmin.dto';
 import JwtExceptionFilter from 'src/utils/filters/JwtException.filter';
 import LoginUserDto from './dto/loginUser.dto';
 import UserRefreshTokenDto from './dto/userRefreshToken.dto';
+import User from 'src/utils/decorators/User.decorator';
+import UserEntity from 'src/types/User.type';
+import { AuthGuard } from 'src/utils/guards/auth.guard';
 
 @UseFilters(PrismaExceptionFilter)
 @Controller('auth')
@@ -82,6 +85,15 @@ export class AuthController {
       access_token
     }
 
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('logout/admin')
+  async logoutAdmin(@Res({ passthrough: true }) req: Response, @User() admin: UserEntity) {
+
+    req.cookie("refresh_token", undefined, { expires: new Date(0) });
+
+    return this.authService.logoutAdmin(admin);
   }
 
 }

@@ -152,25 +152,30 @@ export class AuthService {
                     }
                 });
 
-                // Update the time_in field when the user relogin
-                await this.db.$queryRaw`
-                        UPDATE admin_logged_in_history
-                        SET 
-                            time_in = CURRENT_TIMESTAMP
-                        WHERE
-                            admin_id = ${admin.id}::UUID
-                            AND
-                            to_char(time_in, 'MM/DD/YYYY') = ${DateTime.now().toFormat("MM/dd/kkkk")}
-                        `;
+                const todayLoggedInCount = await this.db.$queryRaw<Array<{ count: number }>>`
+                    SELECT
+                        COUNT(*)
+                    FROM
+                        admin_logged_in_history
+                    WHERE
+                        admin_id = ${admin.id}::UUID
+                    AND
+                        to_char(created_at, 'YYYY-MM-DD') = to_char(CURRENT_TIMESTAMP, 'YYYY-MM-DD');
+                `;
+
+                // If there's no record of logged in TODAY, create a new one by throwing an error
+                if (todayLoggedInCount.at(0).count <= 0) {
+                    throw new Error();
+                }
 
             } catch (error) {
+                console.log(error);
+
                 // Create admin logged in history with time_in
-                await this.db.admin_logged_in_history.create({
-                    data: {
-                        admin_id: admin.id,
-                        time_in: new Date().toISOString(),
-                    }
-                });
+                await this.db.$queryRaw`
+                    INSERT INTO admin_logged_in_history(admin_id, time_in)
+                    VALUES(${admin.id}::UUID, CURRENT_TIMESTAMP)
+               `;
             }
 
             const access_token = this.jwt.sign({ id: admin.id }, { expiresIn: this.AT_EXPIRY });
@@ -187,14 +192,17 @@ export class AuthService {
     }
 
     async logoutAdmin(admin: UserEntity) {
-        await this.db.$queryRaw`
+        // Update the time_out field when the user logout
+        await this.db.$queryRaw<Array<any>>`
             UPDATE admin_logged_in_history
             SET 
+                updated_at = CURRENT_TIMESTAMP,
                 time_out = CURRENT_TIMESTAMP
             WHERE
-                admin_id = ${admin.id}
+                admin_id = ${admin.id}::UUID
                 AND
-                to_char(time_out, 'MM/DD/YYYY') = ${DateTime.now().toLocaleString(DateTime.DATE_SHORT)}`;
+                to_char(time_in, 'YYYY-MM-DD') = ${DateTime.now().toFormat("kkkk-MM-dd")}
+            `;
     }
 
     refreshToken(refresh_token: string) {
