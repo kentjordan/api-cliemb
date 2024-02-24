@@ -1,14 +1,14 @@
 import { Controller, Get } from "@nestjs/common";
-import { PrismaService } from "src/prisma/prisma.service";
+import AdminsLogService from "./adminsLog.service";
 
-@Controller()
+@Controller('admins-log')
 export default class AdminsLogController {
 
-    constructor(private readonly db: PrismaService) { }
+    constructor(private readonly adminsLogService: AdminsLogService) { }
 
     @Get()
     adminsLog() {
-
+        return this.adminsLogService.getAllAdminsLog();
     }
 
 }

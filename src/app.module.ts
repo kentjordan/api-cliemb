@@ -8,9 +8,34 @@ import { DetailsModule } from './details/details.module';
 import { AdminsModule } from './admins/admins.module';
 import { EmergencyHotlinesModule } from './emergency-hotlines/emergency-hotlines.module';
 import MonitoringModule from './monitoring/monitoring.module';
+import { AdminsLogModule } from './admins-log/adminsLog.module';
+import { UploadModule } from './upload/upload.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { Response } from 'express';
 
 @Module({
-  imports: [AuthModule, PrismaModule, UsersModule, DetailsModule, AdminsModule, EmergencyHotlinesModule, MonitoringModule],
+  imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, "..", "uploads"),
+      exclude: ['/api/(.*)'],
+      serveStaticOptions: {
+        setHeaders(res: Response, path, stat) {
+          res.contentType("image/png");
+          res.set("Content-Disposition", "inline;")
+        },
+      }
+    }),
+    AuthModule,
+    PrismaModule,
+    UsersModule,
+    DetailsModule,
+    AdminsModule,
+    EmergencyHotlinesModule,
+    MonitoringModule,
+    AdminsLogModule,
+    UploadModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
