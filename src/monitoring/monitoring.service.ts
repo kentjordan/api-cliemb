@@ -21,8 +21,8 @@ export default class MonitoringService {
                 first_name,
                 last_name,
                 sr_code, 
-                to_char(M.created_at, 'MM/DD/YY') AS date,
-                to_char(M.created_at, 'HH12:MI:SS AM') AS time,
+                to_char(M.created_at, 'MM-DD-YY') AS date,
+                to_char(M.created_at, 'HH:MI PM') AS time,
                 room,
                 floor_no,
                 photo,
@@ -33,7 +33,9 @@ export default class MonitoringService {
                 JOIN "user" AS U
                 ON M.user_id = U.id
                 WHERE state = 'TO RECEIVE'::user_emergency_state
-            ORDER BY emergency_level ASC
+            ORDER BY
+                emergency_level ASC,
+                M.created_at DESC
         `;
 
             const pending = await this.db.$queryRaw<Array<any>>`
@@ -43,7 +45,8 @@ export default class MonitoringService {
                 first_name,
                 last_name,
                 sr_code, 
-                M.created_at,
+                to_char(M.created_at, 'MM-DD-YY') AS date,
+                to_char(M.created_at, 'HH:MI PM') AS time,
                 room,
                 floor_no,
                 photo,
@@ -54,32 +57,36 @@ export default class MonitoringService {
             JOIN "user" AS U
             ON M.user_id = U.id
             WHERE state = 'PENDING'::user_emergency_state
-            ORDER BY emergency_level ASC
-        `;
+            ORDER BY
+                emergency_level ASC,
+                M.created_at DESC
+            `;
 
             return [...to_receive, ...pending];
         }
 
         if (state === "COMPLETED")
             return await this.db.$queryRaw<Array<any>>`
-            SELECT
-                M.id AS monitoring_id,
-                U.id AS user_id,
-                first_name,
-                last_name,
-                sr_code, 
-                M.created_at,
-                room,
-                floor_no,
-                photo,
-                narrative,
-                state,
-                emergency_level
-            FROM monitoring AS M
-            JOIN "user" AS U
-            ON M.user_id = U.id
-            WHERE state = 'COMPLETED'::user_emergency_state
-            ORDER BY emergency_level ASC
+                SELECT
+                    M.id AS monitoring_id,
+                    U.id AS user_id,
+                    first_name,
+                    last_name,
+                    sr_code, 
+                    to_char(M.created_at, 'MM-DD-YY') AS date,
+                    to_char(M.created_at, 'HH:MI PM') AS time,
+                    room,
+                    floor_no,
+                    photo,
+                    narrative,
+                    state,
+                    emergency_level
+                FROM monitoring AS M
+                JOIN "user" AS U
+                ON M.user_id = U.id
+                WHERE state = 'COMPLETED'::user_emergency_state
+                ORDER BY
+                    M.created_at DESC
         `;
     }
 
@@ -118,18 +125,31 @@ export default class MonitoringService {
     }
 
     async createUserMonitoring(user: UserEntity, emergency_level: number, details: EmergencyDetailsDto) {
-        return await this.db.monitoring.create({
-            data: {
-                state: "TO_RECEIVE",
-                floor_no: details.floor_no,
-                room: details.room,
-                equipment_needed: details.equipment_needed.split(",").map((e) => e.trim()),
-                narrative: details.narrative,
-                photo: details.photo.split(",").map((e) => e.trim()),
-                user_id: user.id,
-                emergency_level: emergency_level
-            }
-        });
+
+        try {
+            await this.db.$queryRaw`
+            INSERT INTO monitoring(         
+                state,
+                floor_no,
+                room,
+                equipment_needed,
+                narrative,
+                photo,
+                user_id,
+                emergency_level)
+            VALUES(
+                ${"TO RECEIVE"}::user_emergency_state,
+                ${details.floor_no},
+                ${details.room},
+                ${details.equipment_needed.split(",").map((e) => e.trim())},
+                ${details.narrative},
+                ${details.photo ? details.photo.split(",").map((e) => e.trim()) : undefined},
+                ${user.id}::UUID,
+                ${emergency_level})      
+            `;
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     async updateUserMonitoring(user: UserEntity, monitoring_id: string, emergency_level: number, details: EmergencyDetailsDto) {
@@ -191,13 +211,14 @@ export default class MonitoringService {
                     const userDetails = await this.updateUserDetails(user, {
                         ...body.details,
                         equipment_needed: body.details.equipment_needed,
-                        photo: "",
+                        photo: body.details.photo,
 
                     });
-                    const userMonitoring = await this.createUserMonitoring(user, body.emergency_level, {
+
+                    await this.createUserMonitoring(user, body.emergency_level, {
                         ...body.details,
                         equipment_needed: body.details.equipment_needed,
-                        photo: "",
+                        photo: body.details.photo,
                         narrative: userDetails.narrative
                     });
 
@@ -209,7 +230,7 @@ export default class MonitoringService {
                 const userDetails = await this.updateUserDetails(user, {
                     ...body.details,
                     equipment_needed: body.details.equipment_needed,
-                    photo: "",
+                    photo: body.details.photo,
                 });
 
                 const monitoringRecord = await this.db.monitoring.findFirstOrThrow({
@@ -234,7 +255,7 @@ export default class MonitoringService {
 
                 await this.updateUserMonitoring(user, monitoringRecord.id, body.emergency_level, {
                     ...body.details,
-                    photo: "",
+                    photo: body.details.photo,
                     equipment_needed: body.details.equipment_needed,
                     narrative: userDetails.narrative
                 });
@@ -246,13 +267,13 @@ export default class MonitoringService {
                 const userDetails = await this.updateUserDetails(user, {
                     ...body.details,
                     equipment_needed: body.details.equipment_needed,
-                    photo: "",
+                    photo: body.details.photo,
                 });
 
                 await this.createUserMonitoring(user, body.emergency_level, {
                     ...body.details,
                     equipment_needed: body.details.equipment_needed,
-                    photo: "",
+                    photo: body.details.photo,
                     narrative: userDetails.narrative
                 });
 
@@ -275,7 +296,7 @@ export default class MonitoringService {
             await this.createUserMonitoring(user, body.emergency_level, {
                 ...body.details,
                 equipment_needed: body.details.equipment_needed,
-                photo: "",
+                photo: body.details.photo,
                 narrative: userDetails.narrative
             });
 
@@ -308,12 +329,15 @@ export default class MonitoringService {
                 id = ${monitoring_id}::UUID AND user_id = ${user_id}::UUID;
         `;
 
-        await this.db.received_case.create({
-            data: {
-                admin_id: admin.id,
-                user_id,
-                monitoring_id,
-            }
-        })
+        // state now is PENDING after the user clicked the TO RECEIVE button in frontend
+        if (state === "PENDING") {
+            await this.db.received_case.create({
+                data: {
+                    admin_id: admin.id,
+                    user_id,
+                    monitoring_id,
+                }
+            });
+        }
     }
 }
