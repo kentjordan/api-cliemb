@@ -18,6 +18,7 @@ export class AdminsService {
                 username: true,
                 contact_no: true,
                 email: true,
+                profile_photo: true,
             },
             where: {
                 id: user.id
