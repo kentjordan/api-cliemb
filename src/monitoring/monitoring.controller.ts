@@ -31,8 +31,16 @@ export default class MonitoringCntroller {
     }
 
     @Get()
-    getMonitoringData(@Query('state') state: IMonitoringState) {
-        return this.monitoringService.getMonitoringData(state);
+    getMonitoringData(
+        @Query('state') state: IMonitoringState,
+        @Query('limit') limit: number,
+        @Query('offset') offset: number) {
+        return this.monitoringService.getMonitoringData(state, +limit, +offset);
+    }
+
+    @Get('/size')
+    getMonitoringDataSize(@Query('state') state: IMonitoringState) {
+        return this.monitoringService.getMonitoringDataSize(state);
     }
 
     @Get('state')

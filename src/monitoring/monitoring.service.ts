@@ -11,7 +11,24 @@ export default class MonitoringService {
 
     constructor(private readonly db: PrismaService) { }
 
-    async getMonitoringData(state: IMonitoringState = null) {
+    async getMonitoringDataSize(state: IMonitoringState = null) {
+
+        if (state === 'COMPLETED') {
+            return (await this.db.$queryRaw<Array<{ count: number }>>`
+            SELECT COUNT(*)        
+            FROM monitoring
+            WHERE state = 'COMPLETED'::user_emergency_state
+        `).at(0);
+        }
+
+        return (await this.db.$queryRaw<Array<{ count: number }>>`
+            SELECT COUNT(*)        
+            FROM monitoring
+            WHERE state = ${state}::user_emergency_state
+        `).at(0);
+    }
+
+    async getMonitoringData(state: IMonitoringState = null, limit: number, offset: number) {
 
         if (state !== "COMPLETED") {
             const to_receive = await this.db.$queryRaw<Array<any>>`
@@ -87,6 +104,8 @@ export default class MonitoringService {
                 WHERE state = 'COMPLETED'::user_emergency_state
                 ORDER BY
                     M.created_at DESC
+                LIMIT ${limit}
+                OFFSET ${offset}
         `;
     }
 
