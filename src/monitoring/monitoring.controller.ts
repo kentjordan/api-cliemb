@@ -48,6 +48,16 @@ export default class MonitoringCntroller {
         return this.monitoringService.getUserLevelEmergencyState(user);
     }
 
+    @Get('search')
+    searchUserMonitoring(
+        @Query('state') state: IMonitoringState,
+        @Query('q') q: string,
+        @Query('limit') limit: number,
+        @Query('offset') offset: number
+    ) {
+        return this.monitoringService.searchUserMonitoring(state,q, +limit, +offset);
+    }
+
     @Patch('state/:user_id')
     updateUserLevelEmergencySTate(
         @User() admin: UserEntity,
