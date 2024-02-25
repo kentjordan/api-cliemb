@@ -8,6 +8,32 @@ export class UsersService {
 
     constructor(private readonly db: PrismaService) { }
 
+    async searchUserByName(q: string) {
+
+        const condition = q.split(' ').map((e: string) => `${e.toLowerCase()}%`)
+
+        return await this.db.$queryRaw`
+            SELECT
+                id,
+                role,
+                sr_code,
+                first_name,
+                last_name,
+                emergency_no,
+                medical_conditions,
+                email,
+                province,
+                city,
+                barangay,
+                profile_photo
+            FROM "user"
+            WHERE
+                lower(first_name) LIKE ANY(array[${condition}])
+                OR
+                lower(last_name) LIKE ANY(array[${condition}])
+        `;
+    }
+
     async getAnalytics() {
         return await this.db.$queryRaw`
             SELECT role, COUNT(role)
@@ -61,10 +87,10 @@ export class UsersService {
         });
     }
 
-    async getAllUsers(query: { limit: number, offset: number, role: UserRole }) {
+    async getAllUsers({ role, limit, offset }: { limit: number, offset: number, role: UserRole }) {
         return await this.db.user.findMany({
-            skip: query.offset,
-            take: query.limit,
+            skip: offset,
+            take: limit,
             select: {
                 id: true,
                 role: true,
@@ -80,7 +106,7 @@ export class UsersService {
                 profile_photo: true
             },
             where: {
-                role: query.role
+                role: role
             }
         });
     }

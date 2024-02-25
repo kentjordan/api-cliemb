@@ -15,14 +15,19 @@ export class UsersController {
   // TODO: Analytics (numbers of users by roles)
   // TODO: [✅] GET , PATCH, and DELETE  user by :id
 
+  @Get('/search')
+  searchUserByName(@Query('q') q: string) {
+    return this.usersService.searchUserByName(q);
+  }
+
   @Get('/analytics')
   getAnalytics() {
     return this.usersService.getAnalytics();
   }
 
   @Get("/all")
-  getAllUsers(@Query('limit') limit: number,
-    @Query('offset') offset: number,
+  getAllUsers(@Query('limit') limit = undefined,
+    @Query('offset') offset = undefined,
     @Query('role') role: UserRole) {
     return this.usersService.getAllUsers({
       limit,
