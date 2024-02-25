@@ -14,7 +14,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.enableCors({
     credentials: true,
-    origin: process.env.NODE_ENV === 'production' ? process.env.PROD_CLIENT_HOSTNAME : process.env.DEV_CLIENT_HOSTNAME,
+    origin: process.env.NODE_ENV === 'production' ? process.env.PROD_CLIENT_HOSTNAME : [process.env.DEV_CLIENT_HOSTNAME, process.env.DEV_MOBILE_CLIENT_HOSTNAME, 'http://localhost:3000'],
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))
 
