@@ -124,6 +124,7 @@ export class UsersService {
                 barangay: true,
                 emergency_no: true,
                 medical_conditions: true,
+                profile_photo: true,
             },
             where: {
                 id: user.id
