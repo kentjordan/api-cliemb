@@ -80,11 +80,32 @@ export class UsersService {
     }
 
     async deleteUserById(id: string) {
-        return await this.db.user.delete({
+        console.log(id);
+
+        await this.db.details.deleteMany({
+            where: {
+                user_id: id
+            }
+        });
+
+        await this.db.received_case.deleteMany({
+            where: {
+                user_id: id
+            }
+        });
+
+        await this.db.monitoring.deleteMany({
+            where: {
+                user_id: id
+            }
+        });
+
+        await this.db.user.delete({
             where: {
                 id
             }
         });
+
     }
 
     async getAllUsers({ role, limit, offset }: { limit: number, offset: number, role: UserRole }) {
