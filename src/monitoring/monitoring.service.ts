@@ -15,98 +15,102 @@ export default class MonitoringService {
 
         const condition = q.split(' ').map((e: string) => `${e.toLowerCase()}%`)
 
-        if (state !== "COMPLETED") {
-            const to_receive = await this.db.$queryRaw<Array<any>>`
-            SELECT
-                M.id AS monitoring_id,
-                U.id AS user_id,
-                first_name,
-                last_name,
-                sr_code, 
-                to_char(M.created_at, 'MM-DD-YY') AS date,
-                to_char(M.created_at, 'HH:MI PM') AS time,
-                room,
-                floor_no,
-                photo,
-                narrative,
-                state,
-                    emergency_level
-                FROM monitoring AS M
-                JOIN "user" AS U
-                ON M.user_id = U.id
-                WHERE 
-                    state = 'TO RECEIVE'::user_emergency_state
-                    AND
-                    (lower(first_name) LIKE ANY(array[${condition}])
-                    OR
-                    lower(last_name) LIKE ANY(array[${condition}]))
-            ORDER BY
-                emergency_level ASC,
-                M.created_at DESC
-        `;
+        switch (state) {
+            case 'TO RECEIVE':
+            case 'PENDING':
+                const to_receive = await this.db.$queryRaw<Array<any>>`
+                    SELECT
+                        M.id AS monitoring_id,
+                        U.id AS user_id,
+                        first_name,
+                        last_name,
+                        sr_code, 
+                        to_char(M.created_at, 'MM-DD-YY') AS date,
+                        to_char(M.created_at, 'HH:MI PM') AS time,
+                        room,
+                        floor_no,
+                        photo,
+                        narrative,
+                        state,
+                            emergency_level
+                        FROM monitoring AS M
+                        JOIN "user" AS U
+                        ON M.user_id = U.id
+                        WHERE 
+                            state = 'TO RECEIVE'::user_emergency_state
+                            AND
+                            (lower(first_name) LIKE ANY(array[${condition}])
+                            OR
+                            lower(last_name) LIKE ANY(array[${condition}]))
+                    ORDER BY
+                        emergency_level ASC,
+                        M.created_at DESC
+                `;
 
-            const pending = await this.db.$queryRaw<Array<any>>`
-            SELECT
-                M.id AS monitoring_id,
-                U.id AS user_id,
-                first_name,
-                last_name,
-                sr_code, 
-                to_char(M.created_at, 'MM-DD-YY') AS date,
-                to_char(M.created_at, 'HH:MI PM') AS time,
-                room,
-                floor_no,
-                photo,
-                narrative,
-                state,
-                emergency_level
-            FROM monitoring AS M
-            JOIN "user" AS U
-            ON M.user_id = U.id
-            WHERE
-                state = 'PENDING'::user_emergency_state
-                AND
-                (lower(first_name) LIKE ANY(array[${condition}])
-                OR
-                lower(last_name) LIKE ANY(array[${condition}]))
-            ORDER BY
-                emergency_level ASC,
-                M.created_at DESC
-            `;
+                const pending = await this.db.$queryRaw<Array<any>>`
+                    SELECT
+                        M.id AS monitoring_id,
+                        U.id AS user_id,
+                        first_name,
+                        last_name,
+                        sr_code, 
+                        to_char(M.created_at, 'MM-DD-YY') AS date,
+                        to_char(M.created_at, 'HH:MI PM') AS time,
+                        room,
+                        floor_no,
+                        photo,
+                        narrative,
+                        state,
+                        emergency_level
+                    FROM monitoring AS M
+                    JOIN "user" AS U
+                    ON M.user_id = U.id
+                    WHERE
+                        state = 'PENDING'::user_emergency_state
+                        AND
+                        (lower(first_name) LIKE ANY(array[${condition}])
+                        OR
+                        lower(last_name) LIKE ANY(array[${condition}]))
+                    ORDER BY
+                        emergency_level ASC,
+                        M.created_at DESC
+                    `;
+                return [...to_receive, ...pending];
 
-            return [...to_receive, ...pending];
+            case 'COMPLETED':
+                return await this.db.$queryRaw<Array<any>>`
+                    SELECT
+                        M.id AS monitoring_id,
+                        U.id AS user_id,
+                        first_name,
+                        last_name,
+                        sr_code, 
+                        to_char(M.created_at, 'MM-DD-YY') AS date,
+                        to_char(M.created_at, 'HH:MI PM') AS time,
+                        room,
+                        floor_no,
+                        photo,
+                        narrative,
+                        state,
+                        emergency_level
+                    FROM monitoring AS M
+                    JOIN "user" AS U
+                    ON M.user_id = U.id
+                    WHERE
+                        state = 'COMPLETED'::user_emergency_state 
+                        AND
+                        (lower(first_name) LIKE ANY(array[${condition}])
+                        OR
+                        lower(last_name) LIKE ANY(array[${condition}]))
+                    ORDER BY
+                        M.created_at DESC
+                    LIMIT ${limit}
+                    OFFSET ${offset}
+                `;
         }
 
-        if (state === "COMPLETED")
-            return await this.db.$queryRaw<Array<any>>`
-                SELECT
-                    M.id AS monitoring_id,
-                    U.id AS user_id,
-                    first_name,
-                    last_name,
-                    sr_code, 
-                    to_char(M.created_at, 'MM-DD-YY') AS date,
-                    to_char(M.created_at, 'HH:MI PM') AS time,
-                    room,
-                    floor_no,
-                    photo,
-                    narrative,
-                    state,
-                    emergency_level
-                FROM monitoring AS M
-                JOIN "user" AS U
-                ON M.user_id = U.id
-                WHERE
-                    state = 'COMPLETED'::user_emergency_state 
-                    AND
-                    lower(first_name) LIKE ANY(array[${condition}])
-                    OR
-                    lower(last_name) LIKE ANY(array[${condition}])
-                ORDER BY
-                    M.created_at DESC
-                LIMIT ${limit}
-                OFFSET ${offset}
-        `;
+
+
 
     }
 

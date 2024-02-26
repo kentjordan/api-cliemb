@@ -1,4 +1,4 @@
-export type IMonitoringState = 'TO_RECEIVE' | 'PENDING' | 'COMPLETED';
+export type IMonitoringState = 'TO RECEIVE' | 'PENDING' | 'COMPLETED';
 
 export default interface IMonitoringEntity {
 
