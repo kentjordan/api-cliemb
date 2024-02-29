@@ -13,8 +13,6 @@ export default class MonitoringGateway implements OnGatewayConnection {
     @WebSocketServer()
     server: Server;
 
-    handleConnection(client: Socket, ...args: any[]) {
-        console.log(client.id);
-    }
+    handleConnection(client: Socket, ...args: any[]) { }
 
 }
