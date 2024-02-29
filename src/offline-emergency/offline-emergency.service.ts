@@ -17,7 +17,5 @@ export class OfflineEmergencyService {
             timeout: 5000
         });
 
-        console.log(res.status);
-
     }
 }
