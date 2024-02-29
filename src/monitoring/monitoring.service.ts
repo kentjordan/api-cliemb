@@ -453,13 +453,13 @@ export default class MonitoringService {
 
         // state now is PENDING after the user clicked the TO RECEIVE button in frontend
         if (state === "PENDING") {
-            await this.db.received_case.create({
-                data: {
-                    admin_id: admin.id,
-                    user_id,
-                    monitoring_id,
-                }
-            });
+
+            await this.db.$queryRaw`
+                INSERT INTO
+                    received_case(created_at, admin_id, user_id, monitoring_id)
+                VALUES
+                    (CURRENT_TIMESTAMP, ${admin.id}::UUID, ${user_id}::UUID, ${monitoring_id}::UUID)
+           `
         }
     }
 }
