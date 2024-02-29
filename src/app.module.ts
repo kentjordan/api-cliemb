@@ -13,6 +13,7 @@ import { UploadModule } from './upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { Response } from 'express';
+import { OfflineEmergencyModule } from './offline-emergency/offline-emergency.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { Response } from 'express';
     EmergencyHotlinesModule,
     MonitoringModule,
     AdminsLogModule,
-    UploadModule
+    UploadModule,
+    OfflineEmergencyModule
   ],
   controllers: [AppController],
   providers: [AppService],
