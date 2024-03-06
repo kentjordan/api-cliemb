@@ -122,3 +122,15 @@ CREATE TABLE emergency_hotlines(
 	city VARCHAR(255) NOT NULL,
 	barangay VARCHAR(255) NOT NULL
 );
+
+INSERT INTO
+	emergency_hotlines(name, landline_no, mobile_no, city, province, barangay)
+VALUES
+	('Bureau of Fire Batangas City', '{(043) 301 7996}', '{09989677348}', 'Batangas City', 'N/A', 'N/A'),
+	('BFP Alangilan Substation', '{(043) 702 1973}', '{09459675216}', 'Batangas City', 'N/A', 'N/A'),
+	('Batanagas City Police Station', '{(043) 723 2476}', '{09208463821}', 'Batangas City', 'N/A', 'N/A'),
+	('Batangas Medical Center', '{(043) 740 8307}', '{09164291515}', 'Batangas City', 'N/A', 'N/A'),
+	('Jesus of Nazareth Hospiital', '{(043) 723 4144}', '{094124336152}', 'Batangas City', 'N/A', 'N/A'),
+	('St. Patrikcs Hospital and Medical Center', '{(043) 723 7089}', '{09597360929}', 'Batangas City', 'N/A', 'N/A'),
+	('Golden Gate General Hospital', '{(043) 341 4112}' ,'{09442577320}', 'Batangas City', 'N/A', 'N/A'),
+	('Batangas Healthcare Specialist', '{(043) 741 2088}','{09648299153}', 'Batangas City', 'N/A', 'N/A');
