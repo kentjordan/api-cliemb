@@ -1,11 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { EmergencyHotlinesService } from './emergency-hotlines.service';
 import { CreateEmergencyHotline } from './dto/createEmergencyHotline';
 import { UpdateEmergencyHotline } from './dto/updateEmergencyHotline';
 import { AuthGuard } from 'src/utils/guards/auth.guard';
 
 @UseGuards(AuthGuard)
-@Controller('emergency-hotlines') 
+@Controller('emergency-hotlines')
 export class EmergencyHotlinesController {
 
   constructor(private readonly emergencyHotlinesService: EmergencyHotlinesService) { }
@@ -18,6 +18,11 @@ export class EmergencyHotlinesController {
   @Get()
   getAllEmergencyHotlines() {
     return this.emergencyHotlinesService.getAllEmergencyHotlines()
+  }
+
+  @Get('search')
+  searchEmergencyHotlines(@Query('q') q: string) {
+    return this.emergencyHotlinesService.searchEmergencyHotlines(q);
   }
 
   @Get(':id')

@@ -20,6 +20,18 @@ export class EmergencyHotlinesService {
         return await this.db.emergency_hotlines.findMany();
     }
 
+    async searchEmergencyHotlines(q: string) {
+        return await this.db.$queryRaw`
+            SELECT
+                *
+            FROM
+                emergency_hotlines
+            WHERE
+                lower(name)
+            LIKE ${q.toLowerCase() + "%"}
+        `;
+    }
+
     async getEmergencyHotlinesById(id: string) {
         return await this.db.emergency_hotlines.findUniqueOrThrow({
             where: {
