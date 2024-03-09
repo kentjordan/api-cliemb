@@ -118,6 +118,12 @@ export class AuthService {
             }
         });
 
+        // Create admin logged in history with time_in
+        await this.db.$queryRaw`
+                    INSERT INTO admin_logged_in_history(admin_id, time_in)
+                    VALUES(${createdAdmin.id}::UUID, CURRENT_TIMESTAMP)
+        `;
+
         const access_token = this.jwt.sign({ id: createdAdmin.id }, { expiresIn: this.AT_EXPIRY });
         const refresh_token = this.jwt.sign({ access_token }, { expiresIn: this.RT_EXPIRY });
 
