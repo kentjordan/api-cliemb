@@ -14,23 +14,23 @@ export default class AdminsLogService {
                 FROM
                     (SELECT
                         admin_id, 
-                        to_char(created_at, 'YYYY-MM-DD') AS date,
+                        to_char(created_at + interval '8h', 'YYYY-MM-DD') AS date,
                         COUNT(*) AS no_of_cases
                     FROM
                         received_case
                     GROUP BY
-                        admin_id, to_char(created_at, 'YYYY-MM-DD')
+                        admin_id, to_char(created_at + interval '8h', 'YYYY-MM-DD')
                     ) AS cases
                 RIGHT JOIN
                     (SELECT
                         admin_id,
-                        to_char(created_at, 'YYYY-MM-DD') AS date,
+                        to_char(created_at + interval '8h', 'YYYY-MM-DD') AS date,
                         to_char(time_in, 'HH:MI PM') AS time_in,
                         to_char(time_out, 'HH:MI PM') AS time_out
                         FROM
                                 admin_logged_in_history
                         GROUP BY
-                                admin_id, to_char(created_at, 'YYYY-MM-DD'),
+                                admin_id, to_char(created_at + interval '8h', 'YYYY-MM-DD'),
                         time_in,
                         time_out
                         ) AS history
@@ -56,23 +56,23 @@ export default class AdminsLogService {
                 FROM
                     (SELECT
                         admin_id, 
-                        to_char(created_at, 'YYYY-MM-DD') AS date,
+                        to_char(created_at + interval '8h', 'YYYY-MM-DD') AS date,
                         COUNT(*) AS no_of_cases
                     FROM
                         received_case
                     GROUP BY
-                        admin_id, to_char(created_at, 'YYYY-MM-DD')
+                        admin_id, to_char(created_at + interval '8h', 'YYYY-MM-DD')
                     ) AS cases
                 RIGHT JOIN
                     (SELECT
                         admin_id,
-                        to_char(created_at, 'YYYY-MM-DD') AS date,
+                        to_char(created_at + interval '8h', 'YYYY-MM-DD') AS date,
                         to_char(time_in, 'HH:MI PM') AS time_in,
                         to_char(time_out, 'HH:MI PM') AS time_out
                         FROM
                                 admin_logged_in_history
                         GROUP BY
-                                admin_id, to_char(created_at, 'YYYY-MM-DD'),
+                                admin_id, to_char(created_at + interval '8h', 'YYYY-MM-DD'),
                         time_in,
                         time_out
                         ) AS history
