@@ -25,8 +25,8 @@ export default class AdminsLogService {
                     (SELECT
                         admin_id,
                         to_char(created_at + interval '8h', 'YYYY-MM-DD') AS date,
-                        to_char(time_in, 'HH:MI PM') AS time_in,
-                        to_char(time_out, 'HH:MI PM') AS time_out
+                        to_char(time_in + interval '8h', 'HH:MI PM') AS time_in,
+                        to_char(time_out + interval '8h', 'HH:MI PM') AS time_out
                         FROM
                                 admin_logged_in_history
                         GROUP BY
@@ -67,8 +67,8 @@ export default class AdminsLogService {
                     (SELECT
                         admin_id,
                         to_char(created_at + interval '8h', 'YYYY-MM-DD') AS date,
-                        to_char(time_in, 'HH:MI PM') AS time_in,
-                        to_char(time_out, 'HH:MI PM') AS time_out
+                        to_char(time_in + interval '8h', 'HH:MI PM') AS time_in,
+                        to_char(time_out + interval '8h', 'HH:MI PM') AS time_out
                         FROM
                                 admin_logged_in_history
                         GROUP BY
