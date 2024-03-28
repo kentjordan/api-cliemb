@@ -1,4 +1,4 @@
-import { IsArray, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Length } from "class-validator";
+import { IsArray, IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Length } from "class-validator";
 
 export default class SignupUserDto {
 
@@ -58,4 +58,10 @@ export default class SignupUserDto {
     @IsString()
     @IsNotEmpty()
     profile_photo: string
+
+    @IsOptional()
+    @IsBoolean()
+    @IsNotEmpty()
+    is_account_approved: boolean
+
 }
