@@ -39,9 +39,13 @@ export default class MonitoringService {
                         WHERE 
                             state = 'TO RECEIVE'::user_emergency_state
                             AND
-                            (lower(first_name) LIKE ANY(array[${condition}])
-                            OR
-                            lower(last_name) LIKE ANY(array[${condition}]))
+                            (
+                                lower(first_name) LIKE ANY(array[${condition}])
+                                OR
+                                lower(last_name) LIKE ANY(array[${condition}])
+                                OR
+                                to_char(M.created_at + interval '8h', 'YYYY-MM-DD') LIKE ANY(array[${condition}])
+                            )
                     ORDER BY
                         emergency_level ASC,
                         M.created_at DESC
@@ -68,9 +72,13 @@ export default class MonitoringService {
                     WHERE
                         state = 'PENDING'::user_emergency_state
                         AND
-                        (lower(first_name) LIKE ANY(array[${condition}])
-                        OR
-                        lower(last_name) LIKE ANY(array[${condition}]))
+                        (
+                            lower(first_name) LIKE ANY(array[${condition}])
+                            OR
+                            lower(last_name) LIKE ANY(array[${condition}])
+                            OR
+                            to_char(M.created_at + interval '8h', 'YYYY-MM-DD') LIKE ANY(array[${condition}])
+                        )
                     ORDER BY
                         emergency_level ASC,
                         M.created_at DESC
@@ -99,19 +107,19 @@ export default class MonitoringService {
                     WHERE
                         state = 'COMPLETED'::user_emergency_state 
                         AND
-                        (lower(first_name) LIKE ANY(array[${condition}])
-                        OR
-                        lower(last_name) LIKE ANY(array[${condition}]))
+                        (
+                            lower(first_name) LIKE ANY(array[${condition}])
+                            OR
+                            lower(last_name) LIKE ANY(array[${condition}])
+                            OR
+                            to_char(M.created_at + interval '8h', 'YYYY-MM-DD') LIKE ANY(array[${condition}])
+                        )
                     ORDER BY
                         M.created_at DESC
                     LIMIT ${limit}
                     OFFSET ${offset}
                 `;
         }
-
-
-
-
     }
 
     async getMonitoringDataSize(state: IMonitoringState = null) {
