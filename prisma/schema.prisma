@@ -89,25 +89,26 @@ model received_case {
 }
 
 model user {
-  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at         DateTime?       @default(now()) @db.Timestamp(6)
-  updated_at         DateTime?       @db.Timestamp(6)
-  role               user_role
-  sr_code            String?         @db.VarChar(255)
-  first_name         String          @db.VarChar(255)
-  last_name          String          @db.VarChar(255)
-  gender             String?         @default("N/A") @db.VarChar(255)
-  email              String          @db.VarChar(255)
-  password           String
-  emergency_no       String[]        @default(dbgenerated("'{N/A}'::character varying[]")) @db.VarChar(255)
-  medical_conditions String[]        @default(dbgenerated("'{N/A}'::text[]"))
-  province           String?         @default("N/A") @db.VarChar(255)
-  city               String?         @default("N/A") @db.VarChar(255)
-  barangay           String?         @default("N/A") @db.VarChar(255)
-  profile_photo      String?
-  details            details?
-  monitoring         monitoring[]
-  received_case      received_case[]
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at          DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?       @db.Timestamp(6)
+  role                user_role
+  sr_code             String?         @unique @db.VarChar(255)
+  first_name          String          @db.VarChar(255)
+  last_name           String          @db.VarChar(255)
+  gender              String?         @default("N/A") @db.VarChar(255)
+  email               String          @unique @db.VarChar(255)
+  password            String
+  emergency_no        String[]        @default(dbgenerated("'{N/A}'::character varying[]")) @db.VarChar(255)
+  medical_conditions  String[]        @default(dbgenerated("'{N/A}'::text[]"))
+  province            String?         @default("N/A") @db.VarChar(255)
+  city                String?         @default("N/A") @db.VarChar(255)
+  barangay            String?         @default("N/A") @db.VarChar(255)
+  profile_photo       String?
+  is_account_approved Boolean?        @default(false)
+  details             details?
+  monitoring          monitoring[]
+  received_case       received_case[]
 }
 
 enum user_emergency_state {
