@@ -78,12 +78,16 @@ export class AuthService {
             select: {
                 id: true,
                 role: true,
-                password: true
+                password: true,
+                is_account_approved: true
             },
             where: {
                 email: body.email
             }
         });
+
+        if (!user.is_account_approved)
+            throw new HttpException('Account has not been approved.', HttpStatus.UNAUTHORIZED)
 
         const verifiedPassword = await argon.verify(user.password, body.password);
 
