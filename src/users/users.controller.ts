@@ -11,10 +11,6 @@ export class UsersController {
 
   constructor(private readonly usersService: UsersService) { }
 
-  // TODO: [✅] Get all users with pagination (limits and offsets)
-  // TODO: Analytics (numbers of users by roles)
-  // TODO: [✅] GET , PATCH, and DELETE  user by :id
-
   @Get('/search')
   searchUserByName(@Query('q') q: string) {
     return this.usersService.searchUserByName(q);
