@@ -31,7 +31,8 @@ CREATE TABLE "user"(
 	province VARCHAR(255) DEFAULT 'N/A',
 	city VARCHAR(255) DEFAULT 'N/A',
 	barangay VARCHAR(255) DEFAULT 'N/A',
-	profile_photo TEXT
+	profile_photo TEXT,
+	is_account_approved BOOLEAN DEFAULT false
 );
 
 CREATE TABLE monitoring(
