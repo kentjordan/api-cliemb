@@ -68,9 +68,6 @@ export class UsersService {
         await this.db.user.update({
             data: {
                 ...dto,
-                province: dto.province.trim(),
-                city: dto.city.trim(),
-                barangay: dto.barangay.trim(),
                 updated_at: new Date().toISOString()
             },
             where: {
