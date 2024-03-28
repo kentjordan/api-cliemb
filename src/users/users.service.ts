@@ -121,7 +121,8 @@ export class UsersService {
                 province: true,
                 city: true,
                 barangay: true,
-                profile_photo: true
+                profile_photo: true,
+                is_account_approved: true
             },
             where: {
                 role: role
