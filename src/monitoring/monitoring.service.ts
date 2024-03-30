@@ -449,7 +449,7 @@ export default class MonitoringService {
         `).at(0);
     }
 
-    async updateUserLevelEmergencyState(admin: UserEntity, user_id: string, { state, monitoring_id }: { state: IMonitoringState, monitoring_id: string }) {
+    async updateUserLevelEmergencyState(admin: UserEntity, user_id: string, { state, monitoring_id }: { state: IMonitoringState, monitoring_id: string }, server: Server) {
         await this.db.$queryRaw`
             UPDATE
                 monitoring
@@ -458,6 +458,9 @@ export default class MonitoringService {
             WHERE
                 id = ${monitoring_id}::UUID AND user_id = ${user_id}::UUID;
         `;
+
+        // Send an event to the user
+        server.to(user_id).emit("update-emergency-request-state");
 
         // state now is PENDING after the user clicked the TO RECEIVE button in frontend
         if (state === "PENDING") {

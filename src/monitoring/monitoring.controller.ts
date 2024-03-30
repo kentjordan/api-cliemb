@@ -64,7 +64,7 @@ export default class MonitoringCntroller {
         @Param('user_id') user_id: string,
         @Body() body: { state: IMonitoringState, monitoring_id: string }
     ) {
-        return this.monitoringService.updateUserLevelEmergencyState(admin, user_id, body);
+        return this.monitoringService.updateUserLevelEmergencyState(admin, user_id, body, this.monitoringGateway.server);
     }
 
 }
