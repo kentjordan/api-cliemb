@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import CreateDetailsDto from './dto/createDetails.dto';
 import UserEntity from 'src/types/User.type';
 import UpdatedetailsDto from './dto/updateDetails.dto';
+import { Server } from 'socket.io';
 
 @Injectable()
 export class DetailsService {
@@ -51,8 +52,9 @@ export class DetailsService {
         return updastedDetails;
     }
 
-    async updateDetailsWithMonitoring(user: UserEntity, body: UpdatedetailsDto) {
-        console.log(body);
+    async updateDetailsWithMonitoring(user: UserEntity, body: UpdatedetailsDto, server: Server) {
+
+        const userDetails = await this.getDetails(user);
 
         const updatedUserDetails = await this.db.details.update({
             select: {
@@ -89,6 +91,31 @@ export class DetailsService {
                 ...body
             }
         });
+
+        // Get every updated detail's field
+        const updatedDetailFields = Object.keys(body)
+            .filter((key: string) => {
+                if (key === 'equipment_needed') {
+                    return body[key].join(",") !== userDetails['equipment_needed'].join(",")
+                }
+                return body[key] !== userDetails[key];
+            }).map((key) => {
+                return [key, {
+                    updated_at: new Date().toISOString(),
+                    isUpdated: true
+                }]
+            });
+
+        await this.db.monitoring_updates.update({
+            data: {
+                ...Object.fromEntries(updatedDetailFields)
+            },
+            where: {
+                monitoring_id,
+            }
+        });
+
+        server.emit("web-update-monitoring");
 
         return updatedUserDetails;
 

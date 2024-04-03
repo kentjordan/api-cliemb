@@ -125,6 +125,21 @@ CREATE TABLE emergency_hotlines(
 	barangay VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE monitoring_updates(
+	id					UUID UNIQUE DEFAULT gen_random_uuid(),
+	created_at 			TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at 			TIMESTAMP,
+	details 			JSON DEFAULT '{"updated_at": null, "isUpdated": false}',
+	room 				JSON DEFAULT '{"updated_at": null, "isUpdated": false}',
+	floor_no 			JSON DEFAULT '{"updated_at": null, "isUpdated": false}',
+	equipment_needed 	JSON DEFAULT '{"updated_at": null, "isUpdated": false}',
+	narrative 			JSON DEFAULT '{"updated_at": null, "isUpdated": false}',
+	monitoring_id 		UUID NOT NULL PRIMARY KEY,
+	CONSTRAINT fk_monitoring_id
+		FOREIGN KEY (monitoring_id) 
+		REFERENCES monitoring(id)
+);
+
 INSERT INTO
 	emergency_hotlines(name, landline_no, mobile_no, city, province, barangay)
 VALUES

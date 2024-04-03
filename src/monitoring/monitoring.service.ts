@@ -254,10 +254,18 @@ export default class MonitoringService {
 
     }
 
+    async createMonitoringUpdates(monitoringId: string,) {
+        await this.db.monitoring_updates.create({
+            data: {
+                monitoring_id: monitoringId
+            }
+        });
+    }
+
     async createUserMonitoring(user: UserEntity, emergency_level: number, details: EmergencyDetailsDto) {
 
         try {
-            await this.db.$queryRaw`
+            return (await this.db.$queryRaw`
             INSERT INTO monitoring(         
                 state,
                 floor_no,
@@ -275,8 +283,9 @@ export default class MonitoringService {
                 ${details.narrative},
                 ${details.photo ? details.photo.split(",").map((e) => e.trim()) : undefined},
                 ${user.id}::UUID,
-                ${emergency_level})      
-            `;
+                ${emergency_level})
+            RETURNING id;
+            `)[0];
         } catch (error) {
             console.log(error);
         }
@@ -345,12 +354,14 @@ export default class MonitoringService {
 
                     });
 
-                    await this.createUserMonitoring(user, body.emergency_level, {
+                    const userMonitoring = await this.createUserMonitoring(user, body.emergency_level, {
                         ...body.details,
                         equipment_needed: body.details.equipment_needed,
                         photo: body.details.photo,
                         narrative: userDetails.narrative
                     });
+
+                    await this.createMonitoringUpdates(userMonitoring.id);
 
                     server.emit("web-new-monitoring-message");
 
@@ -390,6 +401,8 @@ export default class MonitoringService {
                     narrative: userDetails.narrative
                 });
 
+                // await this.createMonitoringUpdates()
+
                 server.emit("web-new-monitoring-message");
 
             } catch (error) {
@@ -400,12 +413,14 @@ export default class MonitoringService {
                     photo: body.details.photo,
                 });
 
-                await this.createUserMonitoring(user, body.emergency_level, {
+                const userMonitoring = await this.createUserMonitoring(user, body.emergency_level, {
                     ...body.details,
                     equipment_needed: body.details.equipment_needed,
                     photo: body.details.photo,
                     narrative: userDetails.narrative
                 });
+
+                await this.createMonitoringUpdates(userMonitoring.id);
 
                 server.emit("web-new-monitoring-message");
 
@@ -423,12 +438,14 @@ export default class MonitoringService {
                 },
             });
 
-            await this.createUserMonitoring(user, body.emergency_level, {
+            const userMonitoring = await this.createUserMonitoring(user, body.emergency_level, {
                 ...body.details,
                 equipment_needed: body.details.equipment_needed,
                 photo: body.details.photo,
                 narrative: userDetails.narrative
             });
+
+            await this.createMonitoringUpdates(userMonitoring.id);
 
             server.emit("web-new-monitoring-message");
 

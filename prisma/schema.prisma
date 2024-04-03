@@ -61,19 +61,20 @@ model emergency_hotlines {
 }
 
 model monitoring {
-  id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at       DateTime?             @default(now()) @db.Timestamp(6)
-  updated_at       DateTime?             @db.Timestamp(6)
-  state            user_emergency_state?
-  room             String                @db.VarChar(64)
-  floor_no         String                @db.VarChar(64)
-  equipment_needed String[]
-  narrative        String?
-  emergency_level  Int?                  @db.SmallInt
-  photo            String[]
-  user_id          String                @db.Uuid
-  user             user                  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
-  received_case    received_case[]
+  id                 String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at         DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at         DateTime?             @db.Timestamp(6)
+  state              user_emergency_state?
+  room               String                @db.VarChar(64)
+  floor_no           String                @db.VarChar(64)
+  equipment_needed   String[]
+  narrative          String?
+  emergency_level    Int?                  @db.SmallInt
+  photo              String[]
+  user_id            String                @db.Uuid
+  user               user                  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id")
+  monitoring_updates monitoring_updates?
+  received_case      received_case[]
 }
 
 model received_case {
@@ -109,6 +110,19 @@ model user {
   details             details?
   monitoring          monitoring[]
   received_case       received_case[]
+}
+
+model monitoring_updates {
+  id               String?    @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at       DateTime?  @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?  @db.Timestamp(6)
+  details          Json?      @default("{\"updated_at\": null, \"isUpdated\": false}") @db.Json
+  room             Json?      @default("{\"updated_at\": null, \"isUpdated\": false}") @db.Json
+  floor_no         Json?      @default("{\"updated_at\": null, \"isUpdated\": false}") @db.Json
+  equipment_needed Json?      @default("{\"updated_at\": null, \"isUpdated\": false}") @db.Json
+  narrative        Json?      @default("{\"updated_at\": null, \"isUpdated\": false}") @db.Json
+  monitoring_id    String     @id @db.Uuid
+  monitoring       monitoring @relation(fields: [monitoring_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_monitoring_id")
 }
 
 enum user_emergency_state {
