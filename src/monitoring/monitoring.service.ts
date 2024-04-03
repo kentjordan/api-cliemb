@@ -151,20 +151,30 @@ export default class MonitoringService {
                 sr_code, 
                 to_char(M.created_at + interval '8h', 'YYYY-MM-DD') AS date,
                 to_char(M.created_at + interval '8h', 'HH:MI PM') AS time,
-                room,
-                floor_no,
-                photo,
-                narrative,
-                state,
-                    emergency_level
-                FROM monitoring AS M
-                JOIN "user" AS U
-                ON M.user_id = U.id
-                WHERE state = 'TO RECEIVE'::user_emergency_state
+                M.room,
+                M.floor_no,
+                M.photo,
+                M.narrative,
+                M.state,
+                M.emergency_level,
+                MU.room AS room_updates,
+                MU.floor_no AS floor_no_updates,
+                MU.narrative AS narrative_updates
+            FROM 
+                monitoring AS M
+            JOIN
+                "user" AS U
+            ON
+                M.user_id = U.id
+            JOIN
+                monitoring_updates AS MU
+            ON 
+                M.id = MU.monitoring_id
+            WHERE
+                state = 'TO RECEIVE'::user_emergency_state
             ORDER BY
                 emergency_level ASC,
-                M.created_at DESC
-        `;
+                M.created_at DESC`;
 
             const pending = await this.db.$queryRaw<Array<any>>`
             SELECT
@@ -172,24 +182,33 @@ export default class MonitoringService {
                 U.id AS user_id,
                 first_name,
                 last_name,
-                sr_code, 
+                sr_code,
                 to_char(M.created_at + interval '8h', 'YYYY-MM-DD') AS date,
                 to_char(M.created_at + interval '8h', 'HH:MI PM') AS time,
-                room,
-                floor_no,
-                photo,
-                narrative,
-                state,
-                emergency_level
-            FROM monitoring AS M
-            JOIN "user" AS U
-            ON M.user_id = U.id
-            WHERE state = 'PENDING'::user_emergency_state
+                M.room,
+                M.floor_no,
+                M.photo,
+                M.narrative,
+                M.state,
+                M.emergency_level,
+                MU.room AS room_updates,
+                MU.floor_no AS floor_no_updates,
+                MU.narrative AS narrative_updates
+            FROM
+                monitoring AS M
+            JOIN
+                "user" AS U
+            ON
+                M.user_id = U.id
+            JOIN
+                monitoring_updates AS MU
+            ON
+                M.id = MU.monitoring_id
+            WHERE
+                state = 'PENDING'::user_emergency_state
             ORDER BY
                 emergency_level ASC,
-                M.created_at DESC
-            `;
-
+                M.created_at DESC`;
             return [...to_receive, ...pending];
         }
 
