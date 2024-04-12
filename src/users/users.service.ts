@@ -76,30 +76,45 @@ export class UsersService {
         })
     }
 
-    async deleteUserById(id: string) {
-        console.log(id);
+    async deleteUserById(user_id: string) {
 
         await this.db.details.deleteMany({
             where: {
-                user_id: id
+                user_id
             }
         });
 
         await this.db.received_case.deleteMany({
             where: {
-                user_id: id
+                user_id
             }
         });
 
+        await this.db.$queryRaw
+            `
+        DELETE 
+        FROM 
+            monitoring_updates 
+        WHERE 
+            monitoring_id 
+        IN (SELECT 
+                id 
+            FROM 
+                monitoring
+            WHERE 
+                user_id = ${user_id}::UUID
+            )
+        `;
+
         await this.db.monitoring.deleteMany({
             where: {
-                user_id: id
+                user_id
             }
         });
 
         await this.db.user.delete({
             where: {
-                id
+                id: user_id
             }
         });
 
